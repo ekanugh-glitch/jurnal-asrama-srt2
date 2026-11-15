@@ -248,10 +248,10 @@
           </button>
         </div>
 
-        <!-- MENU SALIN REKAP KEHADIRAN KE WA -->
+        <!-- MENU SALIN REKAP KEHADIRAN KE WA (KHUSUS YANG TIDAK HADIR) -->
         <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
-          <h6 class="fw-bold mb-2 text-dark"><i class="fa-brands fa-whatsapp text-success me-1"></i> Salin Rekap Kehadiran (WA)</h6>
-          <p class="small text-muted mb-2">Pilih filter untuk menyalin rekap kegiatan ke WhatsApp:</p>
+          <h6 class="fw-bold mb-2 text-dark"><i class="fa-brands fa-whatsapp text-success me-1"></i> Salin Rekap Tidak Hadir (WA)</h6>
+          <p class="small text-muted mb-2">Salin daftar siswa yang **tidak hadir** saja berdasarkan filter:</p>
           
           <div class="row g-2 mb-2">
             <div class="col-12">
@@ -282,8 +282,8 @@
               </select>
             </div>
           </div>
-          <button class="btn btn-whatsapp w-100 py-2 btn-sm" onclick="copyWhatsAppKehadiran()">
-            <i class="fa-solid fa-copy me-1"></i> Salin Rekap Kehadiran ke WhatsApp
+          <button class="btn btn-whatsapp w-100 py-2 btn-sm" onclick="copyWhatsAppKehadiranTidakHadir()">
+            <i class="fa-solid fa-copy me-1"></i> Salin Rekap Tidak Hadir ke WhatsApp
           </button>
         </div>
       </div>
@@ -389,14 +389,14 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // GANTI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyD59_ds-cFpfm_sNi4huPS820rwUZQelXcz9kZ0gU9w_tr4JBwbefu9e4UzPj0T49C/exec';
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwpcTk6iWlpy1AONcpXAyBqa0jvnO6Xb_I6-ZeHC5ScrR-DRVKnmA-m1HVmCDnhWaU0/exec';
 
     let rawStudents = [];
     let currentQuickFilter = 'all';
     let editModalObj;
     let toastObj;
     let lastUpdatedRowIndex = null;
-    let recentKehadiranLogs = []; // Menyimpan log kehadiran lokal untuk salin ke WA
+    let recentKehadiranLogs = [];
 
     document.addEventListener('DOMContentLoaded', () => {
       editModalObj = new bootstrap.Modal(document.getElementById('editModal'));
@@ -439,21 +439,18 @@
       const kelasSet = new Set(rawStudents.map(s => s.kelas).filter(Boolean));
       const sortedKelas = Array.from(kelasSet).sort();
 
-      // Dropdown Filter Data Siswa
       const select = document.getElementById('filterKelas');
       const curVal = select.value;
       select.innerHTML = '<option value="">Semua Kelas</option>';
       sortedKelas.forEach(k => { select.innerHTML += `<option value="${k}">Kelas ${k}</option>`; });
       if (curVal) select.value = curVal;
 
-      // Dropdown Checklist Kehadiran
       const hadirSelect = document.getElementById('hadirFilterKelas');
       const curHadirVal = hadirSelect.value;
       hadirSelect.innerHTML = '<option value="">Pilih Kelas...</option>';
       sortedKelas.forEach(k => { hadirSelect.innerHTML += `<option value="${k}">Kelas ${k}</option>`; });
       if (curHadirVal) hadirSelect.value = curHadirVal;
 
-      // Dropdown WA Filter Rekap Kehadiran
       const waSelect = document.getElementById('waFilterKelas');
       const curWaVal = waSelect.value;
       waSelect.innerHTML = '<option value="">Semua Kelas</option>';
@@ -539,7 +536,6 @@
       container.innerHTML = html;
     }
 
-    // RENDER CHECKLIST KEHADIRAN
     function renderChecklistKehadiran() {
       const kelasVal = document.getElementById('hadirFilterKelas').value;
       const jkVal = document.getElementById('hadirFilterJk').value;
@@ -674,8 +670,8 @@
         btn.disabled = false;
         btn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i> Simpan Absensi Kehadiran`;
         if (res.success) {
-          recentKehadiranLogs = items; // simpan untuk rekap WA lokal
-          document.getElementById('toastMessage').innerText = '✅ Kehadiran berhasil disimpan!';
+          recentKehadiranLogs = items;
+          document.getElementById('toastMessage').innerText = '✅ Kehadiran berhasil disimpan tanpa duplikat!';
           toastObj.show();
         } else {
           alert('Gagal: ' + res.message);
@@ -688,57 +684,45 @@
       });
     }
 
-    // SALIN REKAP KEHADIRAN KE WA
-    function copyWhatsAppKehadiran() {
+    // SALIN REKAP KEHADIRAN KHUSUS SISWA TIDAK HADIR KE WA
+    function copyWhatsAppKehadiranTidakHadir() {
       const kegiatanFilter = document.getElementById('waFilterKegiatan').value;
       const kelasFilter = document.getElementById('waFilterKelas').value;
       const jkFilter = document.getElementById('waFilterJk').value;
       const tglStr = new Date().toLocaleDateString('id-ID', { dateStyle: 'full' });
+      const waktuStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 
       if (recentKehadiranLogs.length === 0) {
-        alert('Belum ada data kehadiran yang baru disimpan pada sesi ini. Silakan simpan absensi terlebih dahulu.');
+        alert('Belum ada data kehadiran yang disimpan pada sesi ini. Silakan simpan absensi terlebih dahulu.');
         return;
       }
 
       const filtered = recentKehadiranLogs.filter(item => {
         const matchKelas = !kelasFilter || item.kelas === kelasFilter;
         const matchJk = !jkFilter || item.jk.toLowerCase() === jkFilter.toLowerCase();
-        return matchKelas && matchJk;
+        const isTidakHadir = item.status !== 'Hadir';
+        return matchKelas && matchJk && isTidakHadir;
       });
 
-      if (filtered.length === 0) {
-        alert('Tidak ada data kehadiran yang cocok dengan filter tersebut.');
-        return;
-      }
-
-      let text = `📋 *REKAP KEHADIRAN ASRAMA SRT 2* 📋\n`;
-      text += `📅 Tanggal: ${tglStr}\n`;
+      let text = `📋 *REKAP KETIDAKHADIRAN ASRAMA SRT 2* 📋\n`;
+      text += `📅 Tanggal: ${tglStr} | Pukul: ${waktuStr}\n`;
       text += `📌 Kegiatan: *${kegiatanFilter}*\n`;
       if (kelasFilter) text += `🏫 Kelas: ${kelasFilter}\n`;
       if (jkFilter) text += `👤 Gender: ${jkFilter}\n`;
       text += `\n`;
 
-      const hadirList = filtered.filter(i => i.status === 'Hadir');
-      const tidakHadirList = filtered.filter(i => i.status !== 'Hadir');
-
-      text += `✅ *Hadir (${hadirList.length} siswa)*\n`;
-      if (hadirList.length === 0) {
-        text += `_Tidak ada_\n`;
+      if (filtered.length === 0) {
+        text += `_Alhamdulillah, tidak ada siswa yang tidak hadir (Semua Hadir / Nihil)._`;
       } else {
-        hadirList.forEach((i, idx) => { text += `${idx + 1}. ${i.nama} (${i.kelas})\n`; });
-      }
-
-      text += `\n❌ *Tidak Hadir (${tidakHadirList.length} siswa)*\n`;
-      if (tidakHadirList.length === 0) {
-        text += `_Alhamdulillah, semua hadir_\n`;
-      } else {
-        tidakHadirList.forEach((i, idx) => {
-          text += `${idx + 1}. *${i.nama}* (${i.kelas}) - Keterangan: _${i.keterangan}_\n`;
+        text += `Daftar Siswa Tidak Hadir (*${filtered.length} siswa*):\n\n`;
+        filtered.forEach((i, idx) => {
+          text += `${idx + 1}. *${i.nama}* (Kelas ${i.kelas})\n`;
+          text += `   • Keterangan: _${i.keterangan}_\n\n`;
         });
       }
 
-      text += `\n_Laporan Jurnal Asrama SRT 2 Kota Surabaya_`;
-      copyToClipboard(text, 'Rekap Kehadiran berhasil disalin untuk WA!');
+      text += `_Laporan Jurnal Asrama SRT 2 Kota Surabaya_`;
+      copyToClipboard(text, 'Rekap Siswa Tidak Hadir berhasil disalin untuk WA!');
     }
 
     function calculateClassSummary() {
