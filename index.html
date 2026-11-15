@@ -248,15 +248,14 @@
           </button>
         </div>
 
-        <!-- MENU SALIN REKAP KEHADIRAN KE WA (KHUSUS YANG TIDAK HADIR) -->
+        <!-- MENU SALIN REKAP KETIDAKHADIRAN KE WA -->
         <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
           <h6 class="fw-bold mb-2 text-dark"><i class="fa-brands fa-whatsapp text-success me-1"></i> Salin Rekap Tidak Hadir (WA)</h6>
-          <p class="small text-muted mb-2">Salin daftar siswa yang **tidak hadir** saja berdasarkan filter:</p>
+          <p class="small text-muted mb-2">Salin daftar siswa yang tidak hadir dengan info lengkap jumlah total & kehadiran:</p>
           
           <div class="row g-2 mb-2">
             <div class="col-12">
               <select id="waFilterKegiatan" class="form-select form-select-sm">
-                <option value="Semua Kegiatan">Semua Kegiatan</option>
                 <option value="Sholat Subuh">Sholat Subuh</option>
                 <option value="Sholat Dzuhur">Sholat Dzuhur</option>
                 <option value="Sholat Ashar">Sholat Ashar</option>
@@ -388,8 +387,7 @@
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // GANTI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwpcTk6iWlpy1AONcpXAyBqa0jvnO6Xb_I6-ZeHC5ScrR-DRVKnmA-m1HVmCDnhWaU0/exec';
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxDIGI6jelyjEAYboWBDx1ovR1iAqoHCxGJUetvtrpfyS9BzUUg_1pkTYhnz7DkptPL/exec';
 
     let rawStudents = [];
     let currentQuickFilter = 'all';
@@ -590,6 +588,10 @@
                 <option value="Alfa" ${defaultKet === 'Alfa' ? 'selected' : ''}>Alfa</option>
                 <option value="Izin" ${defaultKet === 'Izin' || s.status.toLowerCase() === 'izin pulang' ? 'selected' : ''}>Izin</option>
                 <option value="Sakit" ${defaultKet === 'Sakit' || s.ketSakit ? 'selected' : ''}>Sakit</option>
+                <option value="Latihan Silat">Latihan Silat</option>
+                <option value="Latihan Karate">Latihan Karate</option>
+                <option value="Pramuka">Pramuka</option>
+                <option value="Mengikuti Kegiatan Ekstrakurikuler">Mengikuti Kegiatan Ekstrakurikuler</option>
                 <option value="Tidak Ada di Asrama" ${isDiAsrama ? '' : 'selected'}>Tidak Ada di Asrama (${s.status})</option>
               </select>
             </div>
@@ -669,9 +671,12 @@
       .then(res => {
         btn.disabled = false;
         btn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i> Simpan Absensi Kehadiran`;
-        if (res.success) {
+        
+        if (res.status === 'sudah_ada') {
+          alert('⚠️ Absensi untuk kegiatan dan tanggal ini sudah ada. Jika ada perubahan status siswa, sistem akan memperbaruinya otomatis.');
+        } else if (res.success) {
           recentKehadiranLogs = items;
-          document.getElementById('toastMessage').innerText = '✅ Kehadiran berhasil disimpan tanpa duplikat!';
+          document.getElementById('toastMessage').innerText = '✅ Kehadiran berhasil disimpan/diperbarui!';
           toastObj.show();
         } else {
           alert('Gagal: ' + res.message);
@@ -684,7 +689,7 @@
       });
     }
 
-    // SALIN REKAP KEHADIRAN KHUSUS SISWA TIDAK HADIR KE WA
+    // SALIN REKAP KETIDAKHADIRAN KE WA (DENGAN INFO TOTAL, HADIR, TIDAK HADIR)
     function copyWhatsAppKehadiranTidakHadir() {
       const kegiatanFilter = document.getElementById('waFilterKegiatan').value;
       const kelasFilter = document.getElementById('waFilterKelas').value;
@@ -700,9 +705,17 @@
       const filtered = recentKehadiranLogs.filter(item => {
         const matchKelas = !kelasFilter || item.kelas === kelasFilter;
         const matchJk = !jkFilter || item.jk.toLowerCase() === jkFilter.toLowerCase();
-        const isTidakHadir = item.status !== 'Hadir';
-        return matchKelas && matchJk && isTidakHadir;
+        return matchKelas && matchJk;
       });
+
+      if (filtered.length === 0) {
+        alert('Tidak ada data kehadiran yang cocok dengan filter tersebut.');
+        return;
+      }
+
+      const totalSiswa = filtered.length;
+      const hadirList = filtered.filter(i => i.status === 'Hadir');
+      const tidakHadirList = filtered.filter(i => i.status !== 'Hadir');
 
       let text = `📋 *REKAP KETIDAKHADIRAN ASRAMA SRT 2* 📋\n`;
       text += `📅 Tanggal: ${tglStr} | Pukul: ${waktuStr}\n`;
@@ -710,12 +723,16 @@
       if (kelasFilter) text += `🏫 Kelas: ${kelasFilter}\n`;
       if (jkFilter) text += `👤 Gender: ${jkFilter}\n`;
       text += `\n`;
+      text += `📊 *Statistik Kehadiran:*\n`;
+      text += `• Total Siswa: *${totalSiswa}*\n`;
+      text += `• Hadir: *${hadirList.length}*\n`;
+      text += `• Tidak Hadir: *${tidakHadirList.length}*\n\n`;
 
-      if (filtered.length === 0) {
-        text += `_Alhamdulillah, tidak ada siswa yang tidak hadir (Semua Hadir / Nihil)._`;
+      if (tidakHadirList.length === 0) {
+        text += `_Alhamdulillah, semua siswa hadir (Nihil / Tidak ada yang absen)._`;
       } else {
-        text += `Daftar Siswa Tidak Hadir (*${filtered.length} siswa*):\n\n`;
-        filtered.forEach((i, idx) => {
+        text += `❌ *Daftar Siswa Tidak Hadir:*\n\n`;
+        tidakHadirList.forEach((i, idx) => {
           text += `${idx + 1}. *${i.nama}* (Kelas ${i.kelas})\n`;
           text += `   • Keterangan: _${i.keterangan}_\n\n`;
         });
