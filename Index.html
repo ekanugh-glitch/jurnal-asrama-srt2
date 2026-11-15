@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jurnal Asrama SRT 2 Kota Surabaya</title>
+  <!-- Bootstrap 5 CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f4f6f9;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding-bottom: 80px;
+    }
+    .header-banner {
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      color: white;
+      padding: 20px 15px;
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+    .stat-card {
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      background: white;
+      padding: 10px;
+      text-align: center;
+    }
+    .badge-ada { background-color: #198754; color: white; }
+    .badge-tidak-ada { background-color: #dc3545; color: white; }
+    .student-card {
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      margin-bottom: 12px;
+      background: white;
+      transition: all 0.3s ease;
+    }
+    .student-card.updated-flash {
+      background-color: #d1e7dd !important;
+      border: 2px solid #198754 !important;
+    }
+    .class-summary-card {
+      background: white;
+      border-radius: 12px;
+      border: none;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      margin-bottom: 10px;
+      padding: 12px 15px;
+    }
+    .btn-custom-print {
+      background-color: #0d6efd;
+      color: white;
+      border-radius: 30px;
+      font-weight: 600;
+    }
+    .btn-whatsapp {
+      background-color: #25d366;
+      color: white;
+      border-radius: 30px;
+      font-weight: 600;
+    }
+    .btn-whatsapp:hover {
+      background-color: #1ebd56;
+      color: white;
+    }
+    
+    /* Layout Khusus Cetak A4 PDF */
+    @media print {
+      body {
+        background-color: white !important;
+        color: black !important;
+        font-size: 10pt;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      @page {
+        size: A4 portrait;
+        margin: 1cm;
+      }
+      .table-print {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        margin-bottom: 20px;
+      }
+      .table-print th, .table-print td {
+        border: 1px solid #333 !important;
+        padding: 5px 6px;
+        text-align: left;
+        font-size: 9pt;
+      }
+      .table-print th {
+        background-color: #eee !important;
+      }
+    }
+    .print-only {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER (Mobile / Screen) -->
+  <div class="header-banner no-print text-center mb-3">
+    <h5 class="fw-bold mb-1"><i class="fa-solid fa-hotel me-2"></i>MANAJEMEN ASRAMA</h5>
+    <small class="opacity-75">SRT 2 KOTA SURABAYA</small>
+  </div>
+
+  <div class="container no-print">
+
+    <!-- STATISTIK RINGKAS -->
+    <div class="row g-2 mb-3">
+      <div class="col-4">
+        <div class="stat-card">
+          <small class="text-muted d-block" style="font-size: 11px;">Total</small>
+          <span class="fs-5 fw-bold text-dark" id="statTotal">0</span>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="stat-card">
+          <small class="text-muted d-block" style="font-size: 11px;">Ada</small>
+          <span class="fs-5 fw-bold text-success" id="statAda">0</span>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="stat-card">
+          <small class="text-muted d-block" style="font-size: 11px;">Tidak Ada</small>
+          <span class="fs-5 fw-bold text-danger" id="statTidakAda">0</span>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="stat-card">
+          <small class="text-muted d-block" style="font-size: 11px;">Siswa Sakit</small>
+          <span class="fs-5 fw-bold text-warning text-dark" id="statSakit">0</span>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="stat-card">
+          <small class="text-muted d-block" style="font-size: 11px;">Catatan Pembinaan</small>
+          <span class="fs-5 fw-bold text-info text-dark" id="statCatatan">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB NAVIGASI -->
+    <ul class="nav nav-pills nav-fill mb-3 bg-white p-1 rounded-4 shadow-sm" id="pills-tab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active rounded-pill py-2 fw-bold small" id="tab-siswa-btn" data-bs-toggle="pill" data-bs-target="#tab-siswa" type="button"><i class="fa-solid fa-users me-1"></i> Data Siswa</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link rounded-pill py-2 fw-bold small" id="tab-rekap-btn" data-bs-toggle="pill" data-bs-target="#tab-rekap" type="button"><i class="fa-solid fa-chart-pie me-1"></i> Rekap Per Kelas</button>
+      </li>
+    </ul>
+
+    <div class="tab-content" id="pills-tabContent">
+      
+      <!-- TAB 1: DATA SISWA & PENCARIAN -->
+      <div class="tab-pane fade show active" id="tab-siswa" role="tabpanel">
+        
+        <!-- PENCARIAN & FILTER -->
+        <div class="card border-0 shadow-sm rounded-4 p-3 mb-3 bg-white">
+          <div class="row g-2">
+            <div class="col-12">
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                <input type="text" id="searchNama" class="form-control bg-light border-start-0" placeholder="Cari Nama Siswa..." oninput="applyFilters()">
+              </div>
+            </div>
+            <div class="col-6">
+              <select id="filterKelas" class="form-select form-select-sm" onchange="applyFilters()">
+                <option value="">Semua Kelas</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <select id="filterJk" class="form-select form-select-sm" onchange="applyFilters()">
+                <option value="">Semua Gender</option>
+                <option value="Laki-laki">Laki-laki</option>
+                <option value="Perempuan">Perempuan</option>
+              </select>
+            </div>
+            <div class="col-12 d-flex gap-1 overflow-auto pt-1">
+              <button class="btn btn-outline-secondary btn-sm rounded-pill text-nowrap" id="btnFilterAll" onclick="setQuickFilter('all')">Semua</button>
+              <button class="btn btn-outline-danger btn-sm rounded-pill text-nowrap" id="btnFilterTidakAda" onclick="setQuickFilter('tidak_ada')">Tidak Ada</button>
+              <button class="btn btn-outline-warning btn-sm rounded-pill text-nowrap" id="btnFilterSakit" onclick="setQuickFilter('sakit')">Sakit</button>
+              <button class="btn btn-outline-info btn-sm rounded-pill text-nowrap" id="btnFilterCatatan" onclick="setQuickFilter('catatan')">Ada Catatan</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- LIST SISWA -->
+        <div id="loadingSpinner" class="text-center my-4">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="small text-muted mt-2">Memuat Data Siswa...</p>
+        </div>
+
+        <div id="studentList"></div>
+      </div>
+
+      <!-- TAB 2: REKAPITULASI PER KELAS -->
+      <div class="tab-pane fade" id="tab-rekap" role="tabpanel">
+        
+        <!-- TOMBOL SALIN LAPORAN KHUSUS WHATSAPP DI TAB REKAP -->
+        <div class="card border-0 shadow-sm rounded-4 p-3 mb-3 bg-white">
+          <h6 class="fw-bold mb-2 text-dark"><i class="fa-brands fa-whatsapp text-success me-1"></i> Bagikan ke WhatsApp</h6>
+          <p class="small text-muted mb-2">Salin rekap daftar siswa sakit & catatan pembinaan siap kirim:</p>
+          <div class="d-grid gap-2">
+            <button class="btn btn-whatsapp btn-sm py-2" onclick="copyWhatsAppSakit()">
+              <i class="fa-solid fa-copy me-1"></i> Salin Rekap Siswa Sakit (WA)
+            </button>
+            <button class="btn btn-whatsapp btn-sm py-2" onclick="copyWhatsAppCatatan()">
+              <i class="fa-solid fa-copy me-1"></i> Salin Rekap Catatan Pembinaan (WA)
+            </button>
+          </div>
+        </div>
+
+        <div id="mobileClassSummaryContainer"></div>
+      </div>
+
+    </div>
+
+    <!-- TOMBOL REKAP CETAK PDF -->
+    <div class="d-grid my-3">
+      <button class="btn btn-custom-print py-2 shadow-sm" onclick="printReport()">
+        <i class="fa-solid fa-print me-2"></i>Cetak Rekap Jurnal A4 (PDF)
+      </button>
+    </div>
+
+  </div>
+
+  <!-- TOAST NOTIFIKASI STATUS -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="copyToast" class="toast align-items-center text-white bg-success border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body fw-bold" id="toastMessage">
+          Berhasil disimpan!
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EDIT STATUS SISWA -->
+  <div class="modal fade no-print" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 border-0">
+        <div class="modal-header border-0 pb-0">
+          <h6 class="modal-header-title fw-bold" id="editNamaSiswa">Edit Status Siswa</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="editForm">
+            <input type="hidden" id="editRowIndex">
+            <input type="hidden" id="editIdSiswa">
+            <input type="hidden" id="editNamaVal">
+            <input type="hidden" id="editKelasVal">
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Status Keberadaan</label>
+              <select id="editStatus" class="form-select">
+                <option value="Ada">Ada di Asrama</option>
+                <option value="Tidak Ada">Tidak Ada di Asrama</option>
+                <option value="Izin Pulang">Izin Pulang</option>
+                <option value="Mundur">Mundur</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Keterangan Status (Alasan/Izin)</label>
+              <input type="text" id="editKetStatus" class="form-control" placeholder="Contoh: Pulang acara keluarga">
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Keterangan Sakit (jika ada)</label>
+              <input type="text" id="editKetSakit" class="form-control" placeholder="Contoh: Demam & Batuk">
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Catatan Pembinaan / Khusus</label>
+              <textarea id="editCatatan" class="form-control" rows="2" placeholder="Catatan karakter/pembinaan..."></textarea>
+            </div>
+            <button type="button" id="btnSimpan" class="btn btn-success w-100 rounded-3 fw-bold shadow-sm py-2" onclick="saveStudentStatus()">
+              <i class="fa-solid fa-floppy-disk me-1"></i> Simpan Perubahan
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAMPILAN KHUSUS CETAK PDF A4 -->
+  <div class="print-only p-2" id="printArea">
+    <div class="text-center mb-3">
+      <h3 class="fw-bold mb-1" style="font-size: 14pt;">JURNAL ASRAMA SRT 2 KOTA SURABAYA</h3>
+      <p class="mb-0 small text-muted">Tanggal & Waktu Cetak: <span id="printTimestamp"></span></p>
+      <hr style="border-top: 2px solid #000; margin: 8px 0;">
+    </div>
+
+    <h6 class="fw-bold mb-1">1. Ringkasan Keseluruhan</h6>
+    <table class="table-print mb-3">
+      <thead>
+        <tr>
+          <th>Total Siswa</th>
+          <th>Ada di Asrama</th>
+          <th>Tidak Ada</th>
+          <th>Siswa Sakit</th>
+          <th>Catatan Pembinaan</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td id="pTotal">0</td>
+          <td id="pAda">0</td>
+          <td id="pTidakAda">0</td>
+          <td id="pSakit">0</td>
+          <td id="pCatatan">0</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h6 class="fw-bold mb-1">2. Rekapitulasi Jumlah Siswa Per Kelas & Jenis Kelamin</h6>
+    <table class="table-print mb-3">
+      <thead>
+        <tr>
+          <th>Kelas</th>
+          <th>Laki-laki (Ada / Tidak)</th>
+          <th>Perempuan (Ada / Tidak)</th>
+          <th>Total Keseluruhan</th>
+        </tr>
+      </thead>
+      <tbody id="pTableKelas"></tbody>
+    </table>
+
+    <h6 class="fw-bold mb-1">3. Rincian Siswa Tidak Ada / Sakit / Catatan Pembinaan</h6>
+    <table class="table-print">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Nama Siswa</th>
+          <th>Kelas</th>
+          <th>Status</th>
+          <th>Keterangan / Sakit</th>
+          <th>Catatan Pembinaan</th>
+        </tr>
+      </thead>
+      <tbody id="pTableDetail"></tbody>
+    </table>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let rawStudents = [];
+    let currentQuickFilter = 'all';
+    let editModalObj;
+    let toastObj;
+    let lastUpdatedRowIndex = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      editModalObj = new bootstrap.Modal(document.getElementById('editModal'));
+      toastObj = new bootstrap.Toast(document.getElementById('copyToast'));
+      loadData();
+    });
+
+    function loadData() {
+      document.getElementById('loadingSpinner').classList.remove('d-none');
+      google.script.run
+        .withSuccessHandler(onDataLoaded)
+        .withFailureHandler(err => alert('Gagal memuat data: ' + err))
+        .getStudentData();
+    }
+
+    function onDataLoaded(data) {
+      rawStudents = data;
+      document.getElementById('loadingSpinner').classList.add('d-none');
+      populateKelasDropdown();
+      updateStats();
+      applyFilters();
+      renderMobileClassSummary();
+
+      // Jika ada baris yang baru saja di-update, beri highlight warna hijau terang sementara
+      if (lastUpdatedRowIndex) {
+        setTimeout(() => {
+          const cardEl = document.getElementById(`student-card-${lastUpdatedRowIndex}`);
+          if (cardEl) {
+            cardEl.classList.add('updated-flash');
+            cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => {
+              cardEl.classList.remove('updated-flash');
+            }, 3500);
+          }
+          lastUpdatedRowIndex = null;
+        }, 100);
+      }
+    }
+
+    function populateKelasDropdown() {
+      const kelasSet = new Set(rawStudents.map(s => s.kelas).filter(Boolean));
+      const select = document.getElementById('filterKelas');
+      select.innerHTML = '<option value="">Semua Kelas</option>';
+      Array.from(kelasSet).sort().forEach(k => {
+        select.innerHTML += `<option value="${k}">Kelas ${k}</option>`;
+      });
+    }
+
+    function updateStats() {
+      const total = rawStudents.length;
+      const ada = rawStudents.filter(s => s.status.toLowerCase() === 'ada').length;
+      const tidakAda = total - ada;
+      const sakit = rawStudents.filter(s => s.ketSakit.length > 0).length;
+      const catatan = rawStudents.filter(s => s.catatan.length > 0).length;
+
+      document.getElementById('statTotal').innerText = total;
+      document.getElementById('statAda').innerText = ada;
+      document.getElementById('statTidakAda').innerText = tidakAda;
+      document.getElementById('statSakit').innerText = sakit;
+      document.getElementById('statCatatan').innerText = catatan;
+    }
+
+    function setQuickFilter(type) {
+      currentQuickFilter = type;
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const searchNama = document.getElementById('searchNama').value.toLowerCase();
+      const filterKelas = document.getElementById('filterKelas').value;
+      const filterJk = document.getElementById('filterJk').value;
+
+      const filtered = rawStudents.filter(s => {
+        const matchNama = s.nama.toLowerCase().includes(searchNama);
+        const matchKelas = !filterKelas || s.kelas === filterKelas;
+        const matchJk = !filterJk || s.jk.toLowerCase() === filterJk.toLowerCase();
+        
+        let matchQuick = true;
+        if (currentQuickFilter === 'tidak_ada') {
+          matchQuick = s.status.toLowerCase() !== 'ada';
+        } else if (currentQuickFilter === 'sakit') {
+          matchQuick = s.ketSakit.length > 0;
+        } else if (currentQuickFilter === 'catatan') {
+          matchQuick = s.catatan.length > 0;
+        }
+
+        return matchNama && matchKelas && matchJk && matchQuick;
+      });
+
+      renderStudentList(filtered);
+    }
+
+    function renderStudentList(list) {
+      const container = document.getElementById('studentList');
+      if (list.length === 0) {
+        container.innerHTML = `<div class="text-center text-muted py-4">Data siswa tidak ditemukan.</div>`;
+        return;
+      }
+
+      let html = '';
+      list.forEach(s => {
+        const isAda = s.status.toLowerCase() === 'ada';
+        const statusBadge = isAda ? `<span class="badge badge-ada">Ada di Asrama</span>` : `<span class="badge badge-tidak-ada">${s.status}</span>`;
+        
+        html += `
+          <div class="card student-card p-3" id="student-card-${s.rowIndex}">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <h6 class="fw-bold mb-1">${s.nama}</h6>
+                <small class="text-muted d-block">${s.kelas} | ${s.jk} | ${s.kamar}</small>
+              </div>
+              <div>${statusBadge}</div>
+            </div>
+            ${s.ketStatus ? `<div class="small text-danger mt-1"><strong>Ket:</strong> ${s.ketStatus}</div>` : ''}
+            ${s.ketSakit ? `<div class="small text-warning text-dark mt-1"><strong>Sakit:</strong> ${s.ketSakit}</div>` : ''}
+            ${s.catatan ? `<div class="small text-secondary mt-1"><strong>Catatan:</strong> ${s.catatan}</div>` : ''}
+            <div class="text-end mt-2">
+              <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="openEditModal(${s.rowIndex})">
+                <i class="fa-solid fa-pen me-1"></i>Edit Status
+              </button>
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    function calculateClassSummary() {
+      const kelasMap = {};
+      rawStudents.forEach(s => {
+        const k = s.kelas || 'Lainnya';
+        if (!kelasMap[k]) {
+          kelasMap[k] = { 
+            total: 0, ada: 0, tidakAda: 0, 
+            lTotal: 0, lAda: 0, lTidak: 0, 
+            pTotal: 0, pAda: 0, pTidak: 0 
+          };
+        }
+        kelasMap[k].total++;
+        const isAda = s.status.toLowerCase() === 'ada';
+        const isL = s.jk.toLowerCase().includes('lak');
+
+        if (isL) {
+          kelasMap[k].lTotal++;
+          if (isAda) kelasMap[k].lAda++; else kelasMap[k].lTidak++;
+        } else {
+          kelasMap[k].pTotal++;
+          if (isAda) kelasMap[k].pAda++;
+        }
+
+        if (isAda) {
+          kelasMap[k].ada++;
+        } else {
+          kelasMap[k].tidakAda++;
+        }
+      });
+      rawStudents.forEach(s => {
+        const k = s.kelas || 'Lainnya';
+        const isAda = s.status.toLowerCase() === 'ada';
+        const isL = s.jk.toLowerCase().includes('lak');
+        if (!isL && !isAda) {
+          kelasMap[k].pTidak = (kelasMap[k].pTidak || 0) + 1;
+        }
+      });
+      return kelasMap;
+    }
+
+    function renderMobileClassSummary() {
+      const container = document.getElementById('mobileClassSummaryContainer');
+      const kelasMap = calculateClassSummary();
+      const keys = Object.keys(kelasMap).sort();
+
+      if (keys.length === 0) {
+        container.innerHTML = `<div class="text-center text-muted py-4">Belum ada data rekap kelas.</div>`;
+        return;
+      }
+
+      let html = '';
+      keys.forEach(k => {
+        const d = kelasMap[k];
+        const pTidakVal = d.pTidak !== undefined ? d.pTidak : (d.pTotal - d.pAda);
+        html += `
+          <div class="class-summary-card">
+            <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-1">
+              <h6 class="fw-bold text-primary mb-0">Kelas ${k}</h6>
+              <span class="badge bg-dark">Total: ${d.total} Siswa</span>
+            </div>
+            <div class="row g-2 text-center small">
+              <div class="col-6 bg-light p-2 rounded-3">
+                <div class="fw-bold text-secondary mb-1">Laki-laki (${d.lTotal})</div>
+                <div class="text-success">Ada: ${d.lAda}</div>
+                <div class="text-danger">Tidak Ada: ${d.lTidak}</div>
+              </div>
+              <div class="col-6 bg-light p-2 rounded-3">
+                <div class="fw-bold text-secondary mb-1">Perempuan (${d.pTotal})</div>
+                <div class="text-success">Ada: ${d.pAda}</div>
+                <div class="text-danger">Tidak Ada: ${pTidakVal}</div>
+              </div>
+            </div>
+            <div class="mt-2 text-end">
+              <small class="text-muted">Di Asrama: <strong>${d.ada}</strong> | Keluar/Tidak: <strong>${d.tidakAda}</strong></small>
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    function copyToClipboard(text, successMsg) {
+      navigator.clipboard.writeText(text).then(() => {
+        document.getElementById('toastMessage').innerText = successMsg;
+        toastObj.show();
+      }).catch(err => {
+        alert('Gagal menyalin: ' + err);
+      });
+    }
+
+    function copyWhatsAppSakit() {
+      const sakitList = rawStudents.filter(s => s.ketSakit && s.ketSakit.trim() !== '');
+      const tglStr = new Date().toLocaleDateString('id-ID', { dateStyle: 'full' });
+
+      let text = `🏥 *REKAP SISWA SAKIT - ASRAMA SRT 2* 🏥\n`;
+      text += `📅 Tanggal: ${tglStr}\n\n`;
+
+      if (sakitList.length === 0) {
+        text += `_Alhamdulillah, tidak ada siswa yang sakit hari ini._`;
+      } else {
+        text += `Total Siswa Sakit: *${sakitList.length} orang*\n\n`;
+        sakitList.forEach((s, idx) => {
+          text += `${idx + 1}. *${s.nama}* (Kelas ${s.kelas})\n`;
+          text += `   • Keterangan: ${s.ketSakit}\n`;
+          text += `   • Kamar: ${s.kamar || '-'}\n\n`;
+        });
+      }
+      text += `_Laporan Jurnal Asrama SRT 2 Kota Surabaya_`;
+
+      copyToClipboard(text, 'Rekap Siswa Sakit berhasil disalin untuk WA!');
+    }
+
+    function copyWhatsAppCatatan() {
+      const catatanList = rawStudents.filter(s => s.catatan && s.catatan.trim() !== '');
+      const tglStr = new Date().toLocaleDateString('id-ID', { dateStyle: 'full' });
+
+      let text = `📝 *REKAP CATATAN PEMBINAAN - ASRAMA SRT 2* 📝\n`;
+      text += `📅 Tanggal: ${tglStr}\n\n`;
+
+      if (catatanList.length === 0) {
+        text += `_Tidak ada catatan pembinaan khusus hari ini._`;
+      } else {
+        text += `Total Catatan: *${catatanList.length} siswa*\n\n`;
+        catatanList.forEach((s, idx) => {
+          text += `${idx + 1}. *${s.nama}* (Kelas ${s.kelas})\n`;
+          text += `   • Catatan: ${s.catatan}\n`;
+          text += `   • Status: ${s.status}\n\n`;
+        });
+      }
+      text += `_Laporan Jurnal Asrama SRT 2 Kota Surabaya_`;
+
+      copyToClipboard(text, 'Rekap Catatan Pembinaan berhasil disalin untuk WA!');
+    }
+
+    function openEditModal(rowIndex) {
+      const student = rawStudents.find(s => s.rowIndex === rowIndex);
+      if (!student) return;
+
+      document.getElementById('editRowIndex').value = student.rowIndex;
+      document.getElementById('editIdSiswa').value = student.id;
+      document.getElementById('editNamaVal').value = student.nama;
+      document.getElementById('editKelasVal').value = student.kelas;
+      document.getElementById('editNamaSiswa').innerText = student.nama;
+      document.getElementById('editStatus').value = student.status;
+      document.getElementById('editKetStatus').value = student.ketStatus;
+      document.getElementById('editKetSakit').value = student.ketSakit;
+      document.getElementById('editCatatan').value = student.catatan;
+
+      editModalObj.show();
+    }
+
+    function saveStudentStatus() {
+      const rowIndex = document.getElementById('editRowIndex').value;
+      const btnSimpan = document.getElementById('btnSimpan');
+      
+      // Ubah tombol menjadi status Loading (warna abu-abu & animasi spinner)
+      btnSimpan.disabled = true;
+      btnSimpan.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Menyimpan...`;
+
+      const payload = {
+        rowIndex: rowIndex,
+        id: document.getElementById('editIdSiswa').value,
+        nama: document.getElementById('editNamaVal').value,
+        kelas: document.getElementById('editKelasVal').value,
+        status: document.getElementById('editStatus').value,
+        ketStatus: document.getElementById('editKetStatus').value,
+        ketSakit: document.getElementById('editKetSakit').value,
+        catatan: document.getElementById('editCatatan').value
+      };
+
+      google.script.run
+        .withSuccessHandler(res => {
+          // Kembalikan tombol ke semula
+          btnSimpan.disabled = false;
+          btnSimpan.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i> Simpan Perubahan`;
+
+          if (res.success) {
+            lastUpdatedRowIndex = rowIndex;
+            editModalObj.hide();
+            
+            // Tampilkan toast indikator sukses warna hijau terang
+            document.getElementById('toastMessage').innerText = '✅ Perubahan berhasil disimpan & dicatat!';
+            toastObj.show();
+
+            loadData(); // Muat ulang data & trigger highlight hijau pada kartu siswa
+          } else {
+            alert('Gagal: ' + res.message);
+          }
+        })
+        .withFailureHandler(err => {
+          btnSimpan.disabled = false;
+          btnSimpan.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i> Simpan Perubahan`;
+          alert('Terjadi kesalahan: ' + err);
+        })
+        .updateStudentStatus(payload);
+    }
+
+    function printReport() {
+      const now = new Date();
+      document.getElementById('printTimestamp').innerText = now.toLocaleString('id-ID');
+
+      const total = rawStudents.length;
+      const ada = rawStudents.filter(s => s.status.toLowerCase() === 'ada').length;
+      const tidakAda = total - ada;
+      const sakit = rawStudents.filter(s => s.ketSakit.length > 0).length;
+      const catatan = rawStudents.filter(s => s.catatan.length > 0).length;
+
+      document.getElementById('pTotal').innerText = total;
+      document.getElementById('pAda').innerText = ada;
+      document.getElementById('pTidakAda').innerText = tidakAda;
+      document.getElementById('pSakit').innerText = sakit;
+      document.getElementById('pCatatan').innerText = catatan;
+
+      const kelasMap = calculateClassSummary();
+      let tbodyKelasHtml = '';
+      Object.keys(kelasMap).sort().forEach(k => {
+        const d = kelasMap[k];
+        const pTidakVal = d.pTidak !== undefined ? d.pTidak : (d.pTotal - d.pAda);
+        tbodyKelasHtml += `
+          <tr>
+            <td><strong>Kelas ${k}</strong></td>
+            <td>${d.lAda} Ada / ${d.lTidak} Tidak (Total: ${d.lTotal})</td>
+            <td>${d.pAda} Ada / ${pTidakVal} Tidak (Total: ${d.pTotal})</td>
+            <td><strong>${d.total} Siswa</strong></td>
+          </tr>
+        `;
+      });
+      document.getElementById('pTableKelas').innerHTML = tbodyKelasHtml;
+
+      const detailList = rawStudents.filter(s => s.status.toLowerCase() !== 'ada' || s.ketSakit || s.catatan);
+      let tbodyDetailHtml = '';
+      if (detailList.length === 0) {
+        tbodyDetailHtml = `<tr><td colspan="6" class="text-center">Semua siswa berada di asrama tanpa catatan khusus.</td></tr>`;
+      } else {
+        detailList.forEach((s, idx) => {
+          let ketCombined = [s.ketStatus ? `Status: ${s.ketStatus}` : '', s.ketSakit ? `Sakit: ${s.ketSakit}` : ''].filter(Boolean).join(' | ');
+          tbodyDetailHtml += `
+            <tr>
+              <td>${idx + 1}</td>
+              <td>${s.nama}</td>
+              <td>${s.kelas}</td>
+              <td>${s.status}</td>
+              <td>${ketCombined || '-'}</td>
+              <td>${s.catatan || '-'}</td>
+            </tr>
+          `;
+        });
+      }
+      document.getElementById('pTableDetail').innerHTML = tbodyDetailHtml;
+
+      window.print();
+    }
+  </script>
+</body>
+</html>
