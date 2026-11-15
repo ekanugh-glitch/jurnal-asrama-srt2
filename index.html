@@ -111,8 +111,8 @@
 
   <!-- HEADER (Mobile / Screen) -->
   <div class="header-banner no-print text-center mb-3">
-    <h5 class="fw-bold mb-1"><i class="fa-solid fa-hotel me-2"></i>MANAJEMEN ASRAMA</h5>
-    <small class="opacity-75">SRT 2 KOTA SURABAYA</small>
+    <h5 class="fw-bold mb-1"><i class="fa-solid fa-hotel me-2"></i>Jurnal Asrama SRT 2</h5>
+    <small class="opacity-75">Kota Surabaya</small>
   </div>
 
   <div class="container no-print">
@@ -208,7 +208,7 @@
       <!-- TAB 2: REKAPITULASI PER KELAS -->
       <div class="tab-pane fade" id="tab-rekap" role="tabpanel">
         
-        <!-- TOMBOL SALIN LAPORAN KHUSUS WHATSAPP DI TAB REKAP -->
+        <!-- TOMBOL SALIN LAPORAN WHATSAPP DI TAB REKAP -->
         <div class="card border-0 shadow-sm rounded-4 p-3 mb-3 bg-white">
           <h6 class="fw-bold mb-2 text-dark"><i class="fa-brands fa-whatsapp text-success me-1"></i> Bagikan ke WhatsApp</h6>
           <p class="small text-muted mb-2">Salin rekap daftar siswa sakit & catatan pembinaan siap kirim:</p>
@@ -354,6 +354,9 @@
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    // GANTI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA SETELAH DEPLOY
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz2jWLIGd_OEH7JBJbvBTmjd5iOIDZjtCuSf1SfY2EqNdDE4bgepjM3MvsysdJTiZ5J/exec';
+
     let rawStudents = [];
     let currentQuickFilter = 'all';
     let editModalObj;
@@ -368,34 +371,35 @@
 
     function loadData() {
       document.getElementById('loadingSpinner').classList.remove('d-none');
-      google.script.run
-        .withSuccessHandler(onDataLoaded)
-        .withFailureHandler(err => alert('Gagal memuat data: ' + err))
-        .getStudentData();
-    }
+      
+      fetch(`${WEB_APP_URL}?action=getData`)
+        .then(response => response.json())
+        .then(data => {
+          rawStudents = data;
+          document.getElementById('loadingSpinner').classList.add('d-none');
+          populateKelasDropdown();
+          updateStats();
+          applyFilters();
+          renderMobileClassSummary();
 
-    function onDataLoaded(data) {
-      rawStudents = data;
-      document.getElementById('loadingSpinner').classList.add('d-none');
-      populateKelasDropdown();
-      updateStats();
-      applyFilters();
-      renderMobileClassSummary();
-
-      // Jika ada baris yang baru saja di-update, beri highlight warna hijau terang sementara
-      if (lastUpdatedRowIndex) {
-        setTimeout(() => {
-          const cardEl = document.getElementById(`student-card-${lastUpdatedRowIndex}`);
-          if (cardEl) {
-            cardEl.classList.add('updated-flash');
-            cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          if (lastUpdatedRowIndex) {
             setTimeout(() => {
-              cardEl.classList.remove('updated-flash');
-            }, 3500);
+              const cardEl = document.getElementById(`student-card-${lastUpdatedRowIndex}`);
+              if (cardEl) {
+                cardEl.classList.add('updated-flash');
+                cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setTimeout(() => {
+                  cardEl.classList.remove('updated-flash');
+                }, 3500);
+              }
+              lastUpdatedRowIndex = null;
+            }, 100);
           }
-          lastUpdatedRowIndex = null;
-        }, 100);
-      }
+        })
+        .catch(error => {
+          alert('Gagal memuat data: ' + error);
+          document.getElementById('loadingSpinner').classList.add('d-none');
+        });
     }
 
     function populateKelasDropdown() {
@@ -641,7 +645,6 @@
       const rowIndex = document.getElementById('editRowIndex').value;
       const btnSimpan = document.getElementById('btnSimpan');
       
-      // Ubah tombol menjadi status Loading (warna abu-abu & animasi spinner)
       btnSimpan.disabled = true;
       btnSimpan.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Menyimpan...`;
 
@@ -656,31 +659,32 @@
         catatan: document.getElementById('editCatatan').value
       };
 
-      google.script.run
-        .withSuccessHandler(res => {
-          // Kembalikan tombol ke semula
-          btnSimpan.disabled = false;
-          btnSimpan.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i> Simpan Perubahan`;
+      fetch(WEB_APP_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      })
+      .then(response => response.json())
+      .then(res => {
+        btnSimpan.disabled = false;
+        btnSimpan.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i> Simpan Perubahan`;
 
-          if (res.success) {
-            lastUpdatedRowIndex = rowIndex;
-            editModalObj.hide();
-            
-            // Tampilkan toast indikator sukses warna hijau terang
-            document.getElementById('toastMessage').innerText = '✅ Perubahan berhasil disimpan & dicatat!';
-            toastObj.show();
+        if (res.success) {
+          lastUpdatedRowIndex = rowIndex;
+          editModalObj.hide();
+          
+          document.getElementById('toastMessage').innerText = '✅ Perubahan berhasil disimpan & dicatat!';
+          toastObj.show();
 
-            loadData(); // Muat ulang data & trigger highlight hijau pada kartu siswa
-          } else {
-            alert('Gagal: ' + res.message);
-          }
-        })
-        .withFailureHandler(err => {
-          btnSimpan.disabled = false;
-          btnSimpan.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i> Simpan Perubahan`;
-          alert('Terjadi kesalahan: ' + err);
-        })
-        .updateStudentStatus(payload);
+          loadData();
+        } else {
+          alert('Gagal: ' + res.message);
+        }
+      })
+      .catch(err => {
+        btnSimpan.disabled = false;
+        btnSimpan.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i> Simpan Perubahan`;
+        alert('Terjadi kesalahan koneksi: ' + err);
+      });
     }
 
     function printReport() {
