@@ -403,12 +403,20 @@
     }
 
     function populateKelasDropdown() {
-      const kelasSet = new Set(rawStudents.map(s => s.kelas).filter(Boolean));
       const select = document.getElementById('filterKelas');
+      const currentSelectedKelas = select.value; // Simpan posisi filter kelas yang sedang aktif
+      
+      const kelasSet = new Set(rawStudents.map(s => s.kelas).filter(Boolean));
       select.innerHTML = '<option value="">Semua Kelas</option>';
+      
       Array.from(kelasSet).sort().forEach(k => {
         select.innerHTML += `<option value="${k}">Kelas ${k}</option>`;
       });
+
+      // Kembalikan ke posisi filter kelas yang sebelumnya dipilih
+      if (currentSelectedKelas) {
+        select.value = currentSelectedKelas;
+      }
     }
 
     function updateStats() {
