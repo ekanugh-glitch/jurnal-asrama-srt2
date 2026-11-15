@@ -69,47 +69,21 @@
       color: white;
     }
     
-    /* Layout Khusus Cetak A4 PDF */
     @media print {
-      body {
-        background-color: white !important;
-        color: black !important;
-        font-size: 10pt;
-      }
-      .no-print {
-        display: none !important;
-      }
-      .print-only {
-        display: block !important;
-      }
-      @page {
-        size: A4 portrait;
-        margin: 1cm;
-      }
-      .table-print {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-        margin-bottom: 20px;
-      }
-      .table-print th, .table-print td {
-        border: 1px solid #333 !important;
-        padding: 5px 6px;
-        text-align: left;
-        font-size: 9pt;
-      }
-      .table-print th {
-        background-color: #eee !important;
-      }
+      body { background-color: white !important; color: black !important; font-size: 10pt; }
+      .no-print { display: none !important; }
+      .print-only { display: block !important; }
+      @page { size: A4 portrait; margin: 1cm; }
+      .table-print { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 20px; }
+      .table-print th, .table-print td { border: 1px solid #333 !important; padding: 5px 6px; text-align: left; font-size: 9pt; }
+      .table-print th { background-color: #eee !important; }
     }
-    .print-only {
-      display: none;
-    }
+    .print-only { display: none; }
   </style>
 </head>
 <body>
 
-  <!-- HEADER (Mobile / Screen) -->
+  <!-- HEADER -->
   <div class="header-banner no-print text-center mb-3">
     <h5 class="fw-bold mb-1"><i class="fa-solid fa-hotel me-2"></i>Jurnal Asrama SRT 2</h5>
     <small class="opacity-75">Kota Surabaya</small>
@@ -151,13 +125,16 @@
       </div>
     </div>
 
-    <!-- TAB NAVIGASI -->
+    <!-- TAB NAVIGASI UTAMA -->
     <ul class="nav nav-pills nav-fill mb-3 bg-white p-1 rounded-4 shadow-sm" id="pills-tab" role="tablist">
       <li class="nav-item" role="presentation">
-        <button class="nav-link active rounded-pill py-2 fw-bold small" id="tab-siswa-btn" data-bs-toggle="pill" data-bs-target="#tab-siswa" type="button"><i class="fa-solid fa-users me-1"></i> Data Siswa</button>
+        <button class="nav-link active rounded-pill py-2 fw-bold small" data-bs-toggle="pill" data-bs-target="#tab-siswa" type="button"><i class="fa-solid fa-users me-1"></i> Data Siswa</button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link rounded-pill py-2 fw-bold small" id="tab-rekap-btn" data-bs-toggle="pill" data-bs-target="#tab-rekap" type="button"><i class="fa-solid fa-chart-pie me-1"></i> Rekap Per Kelas</button>
+        <button class="nav-link rounded-pill py-2 fw-bold small" data-bs-toggle="pill" data-bs-target="#tab-rekap" type="button"><i class="fa-solid fa-chart-pie me-1"></i> Rekap Kelas</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link rounded-pill py-2 fw-bold small" data-bs-toggle="pill" data-bs-target="#tab-kehadiran" type="button"><i class="fa-solid fa-clipboard-check me-1"></i> Kehadiran</button>
       </li>
     </ul>
 
@@ -165,8 +142,6 @@
       
       <!-- TAB 1: DATA SISWA & PENCARIAN -->
       <div class="tab-pane fade show active" id="tab-siswa" role="tabpanel">
-        
-        <!-- PENCARIAN & FILTER -->
         <div class="card border-0 shadow-sm rounded-4 p-3 mb-3 bg-white">
           <div class="row g-2">
             <div class="col-12">
@@ -188,15 +163,14 @@
               </select>
             </div>
             <div class="col-12 d-flex gap-1 overflow-auto pt-1">
-              <button class="btn btn-outline-secondary btn-sm rounded-pill text-nowrap" id="btnFilterAll" onclick="setQuickFilter('all')">Semua</button>
-              <button class="btn btn-outline-danger btn-sm rounded-pill text-nowrap" id="btnFilterTidakAda" onclick="setQuickFilter('tidak_ada')">Tidak Ada</button>
-              <button class="btn btn-outline-warning btn-sm rounded-pill text-nowrap" id="btnFilterSakit" onclick="setQuickFilter('sakit')">Sakit</button>
-              <button class="btn btn-outline-info btn-sm rounded-pill text-nowrap" id="btnFilterCatatan" onclick="setQuickFilter('catatan')">Ada Catatan</button>
+              <button class="btn btn-outline-secondary btn-sm rounded-pill text-nowrap" onclick="setQuickFilter('all')">Semua</button>
+              <button class="btn btn-outline-danger btn-sm rounded-pill text-nowrap" onclick="setQuickFilter('tidak_ada')">Tidak Ada</button>
+              <button class="btn btn-outline-warning btn-sm rounded-pill text-nowrap" onclick="setQuickFilter('sakit')">Sakit</button>
+              <button class="btn btn-outline-info btn-sm rounded-pill text-nowrap" onclick="setQuickFilter('catatan')">Ada Catatan</button>
             </div>
           </div>
         </div>
 
-        <!-- LIST SISWA -->
         <div id="loadingSpinner" class="text-center my-4">
           <div class="spinner-border text-primary" role="status"></div>
           <p class="small text-muted mt-2">Memuat Data Siswa...</p>
@@ -207,11 +181,8 @@
 
       <!-- TAB 2: REKAPITULASI PER KELAS -->
       <div class="tab-pane fade" id="tab-rekap" role="tabpanel">
-        
-        <!-- TOMBOL SALIN LAPORAN WHATSAPP DI TAB REKAP -->
         <div class="card border-0 shadow-sm rounded-4 p-3 mb-3 bg-white">
           <h6 class="fw-bold mb-2 text-dark"><i class="fa-brands fa-whatsapp text-success me-1"></i> Bagikan ke WhatsApp</h6>
-          <p class="small text-muted mb-2">Salin rekap daftar siswa sakit & catatan pembinaan siap kirim:</p>
           <div class="d-grid gap-2">
             <button class="btn btn-whatsapp btn-sm py-2" onclick="copyWhatsAppSakit()">
               <i class="fa-solid fa-copy me-1"></i> Salin Rekap Siswa Sakit (WA)
@@ -221,8 +192,100 @@
             </button>
           </div>
         </div>
-
         <div id="mobileClassSummaryContainer"></div>
+      </div>
+
+      <!-- TAB 3: CHECKLIST KEHADIRAN KEGIATAN -->
+      <div class="tab-pane fade" id="tab-kehadiran" role="tabpanel">
+        <div class="card border-0 shadow-sm rounded-4 p-3 mb-3 bg-white">
+          <h6 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-list-check me-2"></i>Form Checklist Kehadiran</h6>
+          
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Pilih Kegiatan</label>
+            <select id="kegiatanSelect" class="form-select">
+              <optgroup label="Sholat 5 Waktu">
+                <option value="Sholat Subuh">Sholat Subuh</option>
+                <option value="Sholat Dzuhur">Sholat Dzuhur</option>
+                <option value="Sholat Ashar">Sholat Ashar</option>
+                <option value="Sholat Maghrib">Sholat Maghrib</option>
+                <option value="Sholat Isya">Sholat Isya</option>
+              </optgroup>
+              <optgroup label="Kegiatan Asrama">
+                <option value="Apel Pagi / Senam">Apel Pagi / Senam</option>
+                <option value="Makan Bersama">Makan Bersama</option>
+                <option value="Belajar Malam / Jam Studi">Belajar Malam / Jam Studi</option>
+                <option value="Kebersihan Asrama">Kebersihan Asrama</option>
+              </optgroup>
+              <optgroup label="Apel Malam">
+                <option value="Apel Malam & Pengecekan Kamar">Apel Malam & Pengecekan Kamar</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-bold">Filter Kelas</label>
+              <select id="hadirFilterKelas" class="form-select form-select-sm" onchange="renderChecklistKehadiran()">
+                <option value="">Pilih Kelas...</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold">Filter Gender</label>
+              <select id="hadirFilterJk" class="form-select form-select-sm" onchange="renderChecklistKehadiran()">
+                <option value="">Semua Gender</option>
+                <option value="Laki-laki">Laki-laki</option>
+                <option value="Perempuan">Perempuan</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="checklistContainer" class="mb-3 border rounded-3 p-2 bg-light" style="max-height: 400px; overflow-y: auto;">
+            <p class="text-center text-muted small my-3">Silakan pilih Kelas terlebih dahulu untuk menampilkan daftar siswa.</p>
+          </div>
+
+          <button class="btn btn-success w-100 fw-bold py-2 rounded-3 shadow-sm" id="btnSimpanKehadiran" onclick="submitKehadiran()">
+            <i class="fa-solid fa-floppy-disk me-1"></i> Simpan Absensi Kehadiran
+          </button>
+        </div>
+
+        <!-- MENU SALIN REKAP KEHADIRAN KE WA -->
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+          <h6 class="fw-bold mb-2 text-dark"><i class="fa-brands fa-whatsapp text-success me-1"></i> Salin Rekap Kehadiran (WA)</h6>
+          <p class="small text-muted mb-2">Pilih filter untuk menyalin rekap kegiatan ke WhatsApp:</p>
+          
+          <div class="row g-2 mb-2">
+            <div class="col-12">
+              <select id="waFilterKegiatan" class="form-select form-select-sm">
+                <option value="Semua Kegiatan">Semua Kegiatan</option>
+                <option value="Sholat Subuh">Sholat Subuh</option>
+                <option value="Sholat Dzuhur">Sholat Dzuhur</option>
+                <option value="Sholat Ashar">Sholat Ashar</option>
+                <option value="Sholat Maghrib">Sholat Maghrib</option>
+                <option value="Sholat Isya">Sholat Isya</option>
+                <option value="Apel Pagi / Senam">Apel Pagi / Senam</option>
+                <option value="Makan Bersama">Makan Bersama</option>
+                <option value="Belajar Malam / Jam Studi">Belajar Malam / Jam Studi</option>
+                <option value="Kebersihan Asrama">Kebersihan Asrama</option>
+                <option value="Apel Malam & Pengecekan Kamar">Apel Malam & Pengecekan Kamar</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <select id="waFilterKelas" class="form-select form-select-sm">
+                <option value="">Semua Kelas</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <select id="waFilterJk" class="form-select form-select-sm">
+                <option value="">Semua Gender</option>
+                <option value="Laki-laki">Laki-laki</option>
+                <option value="Perempuan">Perempuan</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-whatsapp w-100 py-2 btn-sm" onclick="copyWhatsAppKehadiran()">
+            <i class="fa-solid fa-copy me-1"></i> Salin Rekap Kehadiran ke WhatsApp
+          </button>
+        </div>
       </div>
 
     </div>
@@ -236,13 +299,11 @@
 
   </div>
 
-  <!-- TOAST NOTIFIKASI STATUS -->
+  <!-- TOAST NOTIFIKASI -->
   <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
     <div id="copyToast" class="toast align-items-center text-white bg-success border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
       <div class="d-flex">
-        <div class="toast-body fw-bold" id="toastMessage">
-          Berhasil disimpan!
-        </div>
+        <div class="toast-body fw-bold" id="toastMessage">Berhasil disimpan!</div>
         <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
       </div>
     </div>
@@ -292,60 +353,33 @@
     </div>
   </div>
 
-  <!-- TAMPILAN KHUSUS CETAK PDF A4 -->
+  <!-- CETAK PDF A4 -->
   <div class="print-only p-2" id="printArea">
     <div class="text-center mb-3">
       <h3 class="fw-bold mb-1" style="font-size: 14pt;">JURNAL ASRAMA SRT 2 KOTA SURABAYA</h3>
       <p class="mb-0 small text-muted">Tanggal & Waktu Cetak: <span id="printTimestamp"></span></p>
       <hr style="border-top: 2px solid #000; margin: 8px 0;">
     </div>
-
     <h6 class="fw-bold mb-1">1. Ringkasan Keseluruhan</h6>
     <table class="table-print mb-3">
       <thead>
-        <tr>
-          <th>Total Siswa</th>
-          <th>Ada di Asrama</th>
-          <th>Tidak Ada</th>
-          <th>Siswa Sakit</th>
-          <th>Catatan Pembinaan</th>
-        </tr>
+        <tr><th>Total Siswa</th><th>Ada di Asrama</th><th>Tidak Ada</th><th>Siswa Sakit</th><th>Catatan Pembinaan</th></tr>
       </thead>
       <tbody>
-        <tr>
-          <td id="pTotal">0</td>
-          <td id="pAda">0</td>
-          <td id="pTidakAda">0</td>
-          <td id="pSakit">0</td>
-          <td id="pCatatan">0</td>
-        </tr>
+        <tr><td id="pTotal">0</td><td id="pAda">0</td><td id="pTidakAda">0</td><td id="pSakit">0</td><td id="pCatatan">0</td></tr>
       </tbody>
     </table>
-
     <h6 class="fw-bold mb-1">2. Rekapitulasi Jumlah Siswa Per Kelas & Jenis Kelamin</h6>
     <table class="table-print mb-3">
       <thead>
-        <tr>
-          <th>Kelas</th>
-          <th>Laki-laki (Ada / Tidak)</th>
-          <th>Perempuan (Ada / Tidak)</th>
-          <th>Total Keseluruhan</th>
-        </tr>
+        <tr><th>Kelas</th><th>Laki-laki (Ada / Tidak)</th><th>Perempuan (Ada / Tidak)</th><th>Total Keseluruhan</th></tr>
       </thead>
       <tbody id="pTableKelas"></tbody>
     </table>
-
     <h6 class="fw-bold mb-1">3. Rincian Siswa Tidak Ada / Sakit / Catatan Pembinaan</h6>
     <table class="table-print">
       <thead>
-        <tr>
-          <th>No</th>
-          <th>Nama Siswa</th>
-          <th>Kelas</th>
-          <th>Status</th>
-          <th>Keterangan / Sakit</th>
-          <th>Catatan Pembinaan</th>
-        </tr>
+        <tr><th>No</th><th>Nama Siswa</th><th>Kelas</th><th>Status</th><th>Keterangan / Sakit</th><th>Catatan Pembinaan</th></tr>
       </thead>
       <tbody id="pTableDetail"></tbody>
     </table>
@@ -354,14 +388,15 @@
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // GANTI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA SETELAH DEPLOY
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz2jWLIGd_OEH7JBJbvBTmjd5iOIDZjtCuSf1SfY2EqNdDE4bgepjM3MvsysdJTiZ5J/exec';
+    // GANTI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA
+    const WEB_APP_URL = 'GANTI_DENGAN_URL_WEB_APP_APPS_SCRIPT_ANDA';
 
     let rawStudents = [];
     let currentQuickFilter = 'all';
     let editModalObj;
     let toastObj;
     let lastUpdatedRowIndex = null;
+    let recentKehadiranLogs = []; // Menyimpan log kehadiran lokal untuk salin ke WA
 
     document.addEventListener('DOMContentLoaded', () => {
       editModalObj = new bootstrap.Modal(document.getElementById('editModal'));
@@ -388,9 +423,7 @@
               if (cardEl) {
                 cardEl.classList.add('updated-flash');
                 cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                setTimeout(() => {
-                  cardEl.classList.remove('updated-flash');
-                }, 3500);
+                setTimeout(() => cardEl.classList.remove('updated-flash'), 3500);
               }
               lastUpdatedRowIndex = null;
             }, 100);
@@ -403,20 +436,29 @@
     }
 
     function populateKelasDropdown() {
-      const select = document.getElementById('filterKelas');
-      const currentSelectedKelas = select.value; // Simpan posisi filter kelas yang sedang aktif
-      
       const kelasSet = new Set(rawStudents.map(s => s.kelas).filter(Boolean));
-      select.innerHTML = '<option value="">Semua Kelas</option>';
-      
-      Array.from(kelasSet).sort().forEach(k => {
-        select.innerHTML += `<option value="${k}">Kelas ${k}</option>`;
-      });
+      const sortedKelas = Array.from(kelasSet).sort();
 
-      // Kembalikan ke posisi filter kelas yang sebelumnya dipilih
-      if (currentSelectedKelas) {
-        select.value = currentSelectedKelas;
-      }
+      // Dropdown Filter Data Siswa
+      const select = document.getElementById('filterKelas');
+      const curVal = select.value;
+      select.innerHTML = '<option value="">Semua Kelas</option>';
+      sortedKelas.forEach(k => { select.innerHTML += `<option value="${k}">Kelas ${k}</option>`; });
+      if (curVal) select.value = curVal;
+
+      // Dropdown Checklist Kehadiran
+      const hadirSelect = document.getElementById('hadirFilterKelas');
+      const curHadirVal = hadirSelect.value;
+      hadirSelect.innerHTML = '<option value="">Pilih Kelas...</option>';
+      sortedKelas.forEach(k => { hadirSelect.innerHTML += `<option value="${k}">Kelas ${k}</option>`; });
+      if (curHadirVal) hadirSelect.value = curHadirVal;
+
+      // Dropdown WA Filter Rekap Kehadiran
+      const waSelect = document.getElementById('waFilterKelas');
+      const curWaVal = waSelect.value;
+      waSelect.innerHTML = '<option value="">Semua Kelas</option>';
+      sortedKelas.forEach(k => { waSelect.innerHTML += `<option value="${k}">Kelas ${k}</option>`; });
+      if (curWaVal) waSelect.value = curWaVal;
     }
 
     function updateStats() {
@@ -456,7 +498,6 @@
         } else if (currentQuickFilter === 'catatan') {
           matchQuick = s.catatan.length > 0;
         }
-
         return matchNama && matchKelas && matchJk && matchQuick;
       });
 
@@ -498,16 +539,214 @@
       container.innerHTML = html;
     }
 
+    // RENDER CHECKLIST KEHADIRAN
+    function renderChecklistKehadiran() {
+      const kelasVal = document.getElementById('hadirFilterKelas').value;
+      const jkVal = document.getElementById('hadirFilterJk').value;
+      const container = document.getElementById('checklistContainer');
+
+      if (!kelasVal) {
+        container.innerHTML = `<p class="text-center text-muted small my-3">Silakan pilih Kelas terlebih dahulu.</p>`;
+        return;
+      }
+
+      const filtered = rawStudents.filter(s => {
+        const matchKelas = s.kelas === kelasVal;
+        const matchJk = !jkVal || s.jk.toLowerCase() === jkVal.toLowerCase();
+        return matchKelas && matchJk;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<p class="text-center text-muted small my-3">Tidak ada siswa pada filter tersebut.</p>`;
+        return;
+      }
+
+      let html = `<div class="mb-2 d-flex justify-content-between align-items-center">
+                    <small class="fw-bold text-muted">Jumlah Siswa: ${filtered.length}</small>
+                    <div>
+                      <button type="button" class="btn btn-xs btn-outline-success py-0 px-2" style="font-size:11px;" onclick="toggleAllHadir(true)">Hadir Semua</button>
+                      <button type="button" class="btn btn-xs btn-outline-danger py-0 px-2" style="font-size:11px;" onclick="toggleAllHadir(false)">Reset</button>
+                    </div>
+                  </div>`;
+
+      filtered.forEach((s, idx) => {
+        const isDiAsrama = s.status.toLowerCase() === 'ada';
+        const defaultKet = !isDiAsrama ? s.status : 'Hadir';
+        const selectColor = isDiAsrama ? 'text-success fw-bold' : 'text-danger fw-bold';
+
+        html += `
+          <div class="card p-2 mb-2 shadow-sm border-0 checklist-item-card" data-id="${s.id}" data-nama="${s.nama}" data-kelas="${s.kelas}" data-jk="${s.jk}">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <div>
+                <span class="badge bg-secondary me-1">${idx + 1}</span>
+                <strong class="small">${s.nama}</strong>
+                <span class="text-muted" style="font-size: 11px;">(${s.jk})</span>
+              </div>
+              <div class="form-check form-switch">
+                <input class="form-check-input siswa-hadir-checkbox" type="checkbox" role="switch" id="check-${s.id}" ${isDiAsrama ? 'checked' : ''} onchange="handleChecklistChange('${s.id}')">
+                <label class="form-check-label small" for="check-${s.id}" id="label-check-${s.id}">${isDiAsrama ? 'Hadir' : 'Tidak Hadir'}</label>
+              </div>
+            </div>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text bg-white small">Keterangan</span>
+              <select class="form-select form-select-sm siswa-keterangan-select ${selectColor}" id="ket-${s.id}">
+                <option value="Hadir" ${defaultKet === 'Hadir' ? 'selected' : ''}>Hadir</option>
+                <option value="Alfa" ${defaultKet === 'Alfa' ? 'selected' : ''}>Alfa</option>
+                <option value="Izin" ${defaultKet === 'Izin' || s.status.toLowerCase() === 'izin pulang' ? 'selected' : ''}>Izin</option>
+                <option value="Sakit" ${defaultKet === 'Sakit' || s.ketSakit ? 'selected' : ''}>Sakit</option>
+                <option value="Tidak Ada di Asrama" ${isDiAsrama ? '' : 'selected'}>Tidak Ada di Asrama (${s.status})</option>
+              </select>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function handleChecklistChange(id) {
+      const checkbox = document.getElementById(`check-${id}`);
+      const label = document.getElementById(`label-check-${id}`);
+      const select = document.getElementById(`ket-${id}`);
+
+      if (checkbox.checked) {
+        label.innerText = 'Hadir';
+        select.value = 'Hadir';
+        select.className = 'form-select form-select-sm text-success fw-bold';
+      } else {
+        label.innerText = 'Tidak Hadir';
+        select.value = 'Alfa';
+        select.className = 'form-select form-select-sm text-danger fw-bold';
+      }
+    }
+
+    function toggleAllHadir(status) {
+      document.querySelectorAll('.siswa-hadir-checkbox').forEach(cb => {
+        cb.checked = status;
+        handleChecklistChange(cb.id.replace('check-', ''));
+      });
+    }
+
+    function submitKehadiran() {
+      const kegiatan = document.getElementById('kegiatanSelect').value;
+      const cards = document.querySelectorAll('.checklist-item-card');
+      
+      if (cards.length === 0) {
+        alert('Tidak ada data siswa yang dipilih.');
+        return;
+      }
+
+      const items = [];
+      cards.forEach(card => {
+        const id = card.getAttribute('data-id');
+        const nama = card.getAttribute('data-nama');
+        const kelas = card.getAttribute('data-kelas');
+        const jk = card.getAttribute('data-jk');
+        const isHadir = document.getElementById(`check-${id}`).checked;
+        const ket = document.getElementById(`ket-${id}`).value;
+
+        items.push({
+          id: id,
+          nama: nama,
+          kelas: kelas,
+          jk: jk,
+          status: isHadir ? 'Hadir' : 'Tidak Hadir',
+          keterangan: isHadir ? 'Hadir' : ket
+        });
+      });
+
+      const btn = document.getElementById('btnSimpanKehadiran');
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Menyimpan...`;
+
+      const payload = {
+        action: 'saveKehadiran',
+        kegiatan: kegiatan,
+        items: items
+      };
+
+      fetch(WEB_APP_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(res => {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i> Simpan Absensi Kehadiran`;
+        if (res.success) {
+          recentKehadiranLogs = items; // simpan untuk rekap WA lokal
+          document.getElementById('toastMessage').innerText = '✅ Kehadiran berhasil disimpan!';
+          toastObj.show();
+        } else {
+          alert('Gagal: ' + res.message);
+        }
+      })
+      .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i> Simpan Absensi Kehadiran`;
+        alert('Kesalahan koneksi: ' + err);
+      });
+    }
+
+    // SALIN REKAP KEHADIRAN KE WA
+    function copyWhatsAppKehadiran() {
+      const kegiatanFilter = document.getElementById('waFilterKegiatan').value;
+      const kelasFilter = document.getElementById('waFilterKelas').value;
+      const jkFilter = document.getElementById('waFilterJk').value;
+      const tglStr = new Date().toLocaleDateString('id-ID', { dateStyle: 'full' });
+
+      if (recentKehadiranLogs.length === 0) {
+        alert('Belum ada data kehadiran yang baru disimpan pada sesi ini. Silakan simpan absensi terlebih dahulu.');
+        return;
+      }
+
+      const filtered = recentKehadiranLogs.filter(item => {
+        const matchKelas = !kelasFilter || item.kelas === kelasFilter;
+        const matchJk = !jkFilter || item.jk.toLowerCase() === jkFilter.toLowerCase();
+        return matchKelas && matchJk;
+      });
+
+      if (filtered.length === 0) {
+        alert('Tidak ada data kehadiran yang cocok dengan filter tersebut.');
+        return;
+      }
+
+      let text = `📋 *REKAP KEHADIRAN ASRAMA SRT 2* 📋\n`;
+      text += `📅 Tanggal: ${tglStr}\n`;
+      text += `📌 Kegiatan: *${kegiatanFilter}*\n`;
+      if (kelasFilter) text += `🏫 Kelas: ${kelasFilter}\n`;
+      if (jkFilter) text += `👤 Gender: ${jkFilter}\n`;
+      text += `\n`;
+
+      const hadirList = filtered.filter(i => i.status === 'Hadir');
+      const tidakHadirList = filtered.filter(i => i.status !== 'Hadir');
+
+      text += `✅ *Hadir (${hadirList.length} siswa)*\n`;
+      if (hadirList.length === 0) {
+        text += `_Tidak ada_\n`;
+      } else {
+        hadirList.forEach((i, idx) => { text += `${idx + 1}. ${i.nama} (${i.kelas})\n`; });
+      }
+
+      text += `\n❌ *Tidak Hadir (${tidakHadirList.length} siswa)*\n`;
+      if (tidakHadirList.length === 0) {
+        text += `_Alhamdulillah, semua hadir_\n`;
+      } else {
+        tidakHadirList.forEach((i, idx) => {
+          text += `${idx + 1}. *${i.nama}* (${i.kelas}) - Keterangan: _${i.keterangan}_\n`;
+        });
+      }
+
+      text += `\n_Laporan Jurnal Asrama SRT 2 Kota Surabaya_`;
+      copyToClipboard(text, 'Rekap Kehadiran berhasil disalin untuk WA!');
+    }
+
     function calculateClassSummary() {
       const kelasMap = {};
       rawStudents.forEach(s => {
         const k = s.kelas || 'Lainnya';
         if (!kelasMap[k]) {
-          kelasMap[k] = { 
-            total: 0, ada: 0, tidakAda: 0, 
-            lTotal: 0, lAda: 0, lTidak: 0, 
-            pTotal: 0, pAda: 0, pTidak: 0 
-          };
+          kelasMap[k] = { total: 0, ada: 0, tidakAda: 0, lTotal: 0, lAda: 0, lTidak: 0, pTotal: 0, pAda: 0, pTidak: 0 };
         }
         kelasMap[k].total++;
         const isAda = s.status.toLowerCase() === 'ada';
@@ -521,11 +760,7 @@
           if (isAda) kelasMap[k].pAda++;
         }
 
-        if (isAda) {
-          kelasMap[k].ada++;
-        } else {
-          kelasMap[k].tidakAda++;
-        }
+        if (isAda) kelasMap[k].ada++; else kelasMap[k].tidakAda++;
       });
       rawStudents.forEach(s => {
         const k = s.kelas || 'Lainnya';
@@ -542,11 +777,7 @@
       const container = document.getElementById('mobileClassSummaryContainer');
       const kelasMap = calculateClassSummary();
       const keys = Object.keys(kelasMap).sort();
-
-      if (keys.length === 0) {
-        container.innerHTML = `<div class="text-center text-muted py-4">Belum ada data rekap kelas.</div>`;
-        return;
-      }
+      if (keys.length === 0) { container.innerHTML = `<div class="text-center text-muted py-4">Belum ada data.</div>`; return; }
 
       let html = '';
       keys.forEach(k => {
@@ -570,9 +801,6 @@
                 <div class="text-danger">Tidak Ada: ${pTidakVal}</div>
               </div>
             </div>
-            <div class="mt-2 text-end">
-              <small class="text-muted">Di Asrama: <strong>${d.ada}</strong> | Keluar/Tidak: <strong>${d.tidakAda}</strong></small>
-            </div>
           </div>
         `;
       });
@@ -583,59 +811,34 @@
       navigator.clipboard.writeText(text).then(() => {
         document.getElementById('toastMessage').innerText = successMsg;
         toastObj.show();
-      }).catch(err => {
-        alert('Gagal menyalin: ' + err);
-      });
+      }).catch(err => alert('Gagal menyalin: ' + err));
     }
 
     function copyWhatsAppSakit() {
       const sakitList = rawStudents.filter(s => s.ketSakit && s.ketSakit.trim() !== '');
       const tglStr = new Date().toLocaleDateString('id-ID', { dateStyle: 'full' });
-
-      let text = `🏥 *REKAP SISWA SAKIT - ASRAMA SRT 2* 🏥\n`;
-      text += `📅 Tanggal: ${tglStr}\n\n`;
-
-      if (sakitList.length === 0) {
-        text += `_Alhamdulillah, tidak ada siswa yang sakit hari ini._`;
-      } else {
-        text += `Total Siswa Sakit: *${sakitList.length} orang*\n\n`;
-        sakitList.forEach((s, idx) => {
-          text += `${idx + 1}. *${s.nama}* (Kelas ${s.kelas})\n`;
-          text += `   • Keterangan: ${s.ketSakit}\n`;
-          text += `   • Kamar: ${s.kamar || '-'}\n\n`;
-        });
+      let text = `🏥 *REKAP SISWA SAKIT - ASRAMA SRT 2* 🏥\n📅 Tanggal: ${tglStr}\n\n`;
+      if (sakitList.length === 0) { text += `_Alhamdulillah, tidak ada siswa yang sakit hari ini._`; }
+      else {
+        sakitList.forEach((s, idx) => { text += `${idx + 1}. *${s.nama}* (Kelas ${s.kelas})\n   • Keterangan: ${s.ketSakit}\n\n`; });
       }
-      text += `_Laporan Jurnal Asrama SRT 2 Kota Surabaya_`;
-
-      copyToClipboard(text, 'Rekap Siswa Sakit berhasil disalin untuk WA!');
+      copyToClipboard(text, 'Rekap Sakit disalin untuk WA!');
     }
 
     function copyWhatsAppCatatan() {
       const catatanList = rawStudents.filter(s => s.catatan && s.catatan.trim() !== '');
       const tglStr = new Date().toLocaleDateString('id-ID', { dateStyle: 'full' });
-
-      let text = `📝 *REKAP CATATAN PEMBINAAN - ASRAMA SRT 2* 📝\n`;
-      text += `📅 Tanggal: ${tglStr}\n\n`;
-
-      if (catatanList.length === 0) {
-        text += `_Tidak ada catatan pembinaan khusus hari ini._`;
-      } else {
-        text += `Total Catatan: *${catatanList.length} siswa*\n\n`;
-        catatanList.forEach((s, idx) => {
-          text += `${idx + 1}. *${s.nama}* (Kelas ${s.kelas})\n`;
-          text += `   • Catatan: ${s.catatan}\n`;
-          text += `   • Status: ${s.status}\n\n`;
-        });
+      let text = `📝 *REKAP CATATAN PEMBINAAN - ASRAMA SRT 2* 📝\n📅 Tanggal: ${tglStr}\n\n`;
+      if (catatanList.length === 0) { text += `_Tidak ada catatan khusus hari ini._`; }
+      else {
+        catatanList.forEach((s, idx) => { text += `${idx + 1}. *${s.nama}* (Kelas ${s.kelas})\n   • Catatan: ${s.catatan}\n\n`; });
       }
-      text += `_Laporan Jurnal Asrama SRT 2 Kota Surabaya_`;
-
-      copyToClipboard(text, 'Rekap Catatan Pembinaan berhasil disalin untuk WA!');
+      copyToClipboard(text, 'Rekap Catatan disalin untuk WA!');
     }
 
     function openEditModal(rowIndex) {
       const student = rawStudents.find(s => s.rowIndex === rowIndex);
       if (!student) return;
-
       document.getElementById('editRowIndex').value = student.rowIndex;
       document.getElementById('editIdSiswa').value = student.id;
       document.getElementById('editNamaVal').value = student.nama;
@@ -645,16 +848,14 @@
       document.getElementById('editKetStatus').value = student.ketStatus;
       document.getElementById('editKetSakit').value = student.ketSakit;
       document.getElementById('editCatatan').value = student.catatan;
-
       editModalObj.show();
     }
 
     function saveStudentStatus() {
       const rowIndex = document.getElementById('editRowIndex').value;
       const btnSimpan = document.getElementById('btnSimpan');
-      
       btnSimpan.disabled = true;
-      btnSimpan.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Menyimpan...`;
+      btnSimpan.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Menyimpan...`;
 
       const payload = {
         rowIndex: rowIndex,
@@ -667,87 +868,52 @@
         catatan: document.getElementById('editCatatan').value
       };
 
-      fetch(WEB_APP_URL, {
-        method: 'POST',
-        body: JSON.stringify(payload)
-      })
-      .then(response => response.json())
+      fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) })
+      .then(res => res.json())
       .then(res => {
         btnSimpan.disabled = false;
         btnSimpan.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i> Simpan Perubahan`;
-
         if (res.success) {
           lastUpdatedRowIndex = rowIndex;
           editModalObj.hide();
-          
-          document.getElementById('toastMessage').innerText = '✅ Perubahan berhasil disimpan & dicatat!';
+          document.getElementById('toastMessage').innerText = '✅ Perubahan berhasil disimpan!';
           toastObj.show();
-
           loadData();
-        } else {
-          alert('Gagal: ' + res.message);
-        }
+        } else { alert('Gagal: ' + res.message); }
       })
       .catch(err => {
         btnSimpan.disabled = false;
         btnSimpan.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i> Simpan Perubahan`;
-        alert('Terjadi kesalahan koneksi: ' + err);
+        alert('Kesalahan: ' + err);
       });
     }
 
     function printReport() {
       const now = new Date();
       document.getElementById('printTimestamp').innerText = now.toLocaleString('id-ID');
-
-      const total = rawStudents.length;
-      const ada = rawStudents.filter(s => s.status.toLowerCase() === 'ada').length;
-      const tidakAda = total - ada;
-      const sakit = rawStudents.filter(s => s.ketSakit.length > 0).length;
-      const catatan = rawStudents.filter(s => s.catatan.length > 0).length;
-
-      document.getElementById('pTotal').innerText = total;
-      document.getElementById('pAda').innerText = ada;
-      document.getElementById('pTidakAda').innerText = tidakAda;
-      document.getElementById('pSakit').innerText = sakit;
-      document.getElementById('pCatatan').innerText = catatan;
+      document.getElementById('pTotal').innerText = rawStudents.length;
+      document.getElementById('pAda').innerText = rawStudents.filter(s => s.status.toLowerCase() === 'ada').length;
+      document.getElementById('pTidakAda').innerText = rawStudents.length - parseInt(document.getElementById('pAda').innerText);
+      document.getElementById('pSakit').innerText = rawStudents.filter(s => s.ketSakit.length > 0).length;
+      document.getElementById('pCatatan').innerText = rawStudents.filter(s => s.catatan.length > 0).length;
 
       const kelasMap = calculateClassSummary();
       let tbodyKelasHtml = '';
       Object.keys(kelasMap).sort().forEach(k => {
         const d = kelasMap[k];
-        const pTidakVal = d.pTidak !== undefined ? d.pTidak : (d.pTotal - d.pAda);
-        tbodyKelasHtml += `
-          <tr>
-            <td><strong>Kelas ${k}</strong></td>
-            <td>${d.lAda} Ada / ${d.lTidak} Tidak (Total: ${d.lTotal})</td>
-            <td>${d.pAda} Ada / ${pTidakVal} Tidak (Total: ${d.pTotal})</td>
-            <td><strong>${d.total} Siswa</strong></td>
-          </tr>
-        `;
+        tbodyKelasHtml += `<tr><td><strong>Kelas ${k}</strong></td><td>${d.lAda} Ada / ${d.lTidak} Tidak</td><td>${d.pAda} Ada / ${d.pTidak} Tidak</td><td><strong>${d.total}</strong></td></tr>`;
       });
       document.getElementById('pTableKelas').innerHTML = tbodyKelasHtml;
 
       const detailList = rawStudents.filter(s => s.status.toLowerCase() !== 'ada' || s.ketSakit || s.catatan);
       let tbodyDetailHtml = '';
-      if (detailList.length === 0) {
-        tbodyDetailHtml = `<tr><td colspan="6" class="text-center">Semua siswa berada di asrama tanpa catatan khusus.</td></tr>`;
-      } else {
+      if (detailList.length === 0) { tbodyDetailHtml = `<tr><td colspan="6" class="text-center">Tidak ada catatan khusus.</td></tr>`; }
+      else {
         detailList.forEach((s, idx) => {
-          let ketCombined = [s.ketStatus ? `Status: ${s.ketStatus}` : '', s.ketSakit ? `Sakit: ${s.ketSakit}` : ''].filter(Boolean).join(' | ');
-          tbodyDetailHtml += `
-            <tr>
-              <td>${idx + 1}</td>
-              <td>${s.nama}</td>
-              <td>${s.kelas}</td>
-              <td>${s.status}</td>
-              <td>${ketCombined || '-'}</td>
-              <td>${s.catatan || '-'}</td>
-            </tr>
-          `;
+          tbodyDetailHtml += `<tr><td>${idx + 1}</td><td>${s.nama}</td><td>${s.kelas}</td><td>${s.status}</td><td>${s.ketSakit || '-'}</td><td>${s.catatan || '-'}</td></tr>`;
         });
       }
       document.getElementById('pTableDetail').innerHTML = tbodyDetailHtml;
-
       window.print();
     }
   </script>
