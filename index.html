@@ -247,10 +247,10 @@
           </small>
         </div>
 
-        <!-- MENU SALIN REKAP KETIDAKHADIRAN KE WA -->
+        <!-- MENU SALIN REKAP KETIDAKHADIRAN KE WA (MULTI-KELAS SUPPORT) -->
         <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
           <h6 class="fw-bold mb-2 text-dark"><i class="fa-brands fa-whatsapp text-success me-1"></i> Salin Rekap Tidak Hadir (WA)</h6>
-          <p class="small text-muted mb-2">Salin daftar siswa yang tidak hadir dengan info statistik lengkap:</p>
+          <p class="small text-muted mb-2">Pilih kelas (atau kosongkan untuk gabungkan semua kelas) lalu salin:</p>
           
           <div class="row g-2 mb-2">
             <div class="col-12">
@@ -269,7 +269,7 @@
             </div>
             <div class="col-6">
               <select id="waFilterKelas" class="form-select form-select-sm">
-                <option value="">Semua Kelas</option>
+                <option value="">Semua Kelas (Gabungan)</option>
               </select>
             </div>
             <div class="col-6">
@@ -445,7 +445,7 @@
 
       select.innerHTML = '<option value="">Semua Kelas</option>';
       hadirSelect.innerHTML = '<option value="">Pilih Kelas...</option>';
-      waSelect.innerHTML = '<option value="">Semua Kelas</option>';
+      waSelect.innerHTML = '<option value="">Semua Kelas (Gabungan)</option>';
 
       sortedKelas.forEach(k => {
         select.innerHTML += `<option value="${k}">Kelas ${k}</option>`;
@@ -694,15 +694,14 @@
       });
     }
 
-    // SALIN REKAP KETIDAKHADIRAN KE WA (MENDUKUNG SATU KELAS ATAU BEBERAPA/SEMUA KELAS SEKALIGUS)
+    // SALIN REKAP KETIDAKHADIRAN KE WA (MENDUKUNG SATU KELAS ATAU SEMUA KELAS SEKALIGUS)
     function copyWhatsAppKehadiranTidakHadir() {
       const kegiatanFilter = document.getElementById('waFilterKegiatan').value;
-      const kelasFilter = document.getElementById('waFilterKelas').value; // Jika kosong/"" berarti SEMUA KELAS
+      const kelasFilter = document.getElementById('waFilterKelas').value; // Kosong berarti Semua Kelas
       const jkFilter = document.getElementById('waFilterJk').value;
       const tglStr = new Date().toLocaleDateString('id-ID', { dateStyle: 'full' });
       const waktuStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 
-      // Saring daftar siswa berdasarkan kelas (bisa satu kelas atau semua kelas jika kosong) dan gender
       const targetStudents = rawStudents.filter(s => {
         const matchKelas = !kelasFilter || s.kelas === kelasFilter;
         const matchJk = !jkFilter || s.jk.toLowerCase() === jkFilter.toLowerCase();
@@ -714,7 +713,6 @@
         return;
       }
 
-      // Evaluasi status kehadiran siswa berdasarkan log lokal atau status asrama
       const evaluatedList = targetStudents.map(s => {
         const log = recentKehadiranLogs.find(l => String(l.id) === String(s.id) && l.kegiatan === kegiatanFilter);
         if (log) {
@@ -752,15 +750,15 @@
       } else {
         text += `❌ *Daftar Siswa Tidak Hadir:*\n\n`;
         tidakHadirList.forEach((i, idx) => {
-          // Disertai info Kelas agar jelas jika menyalin beberapa kelas sekaligus
           text += `${idx + 1}. *${i.nama}* (Kelas ${i.kelas})\n`;
-          text += `   • Keterangan: _${i.keterangan_\n\n`;
+          text += `   • Keterangan: _${i.keterangan}_\n\n`;
         });
       }
 
       text += `_Laporan Jurnal Asrama SRT 2 Kota Surabaya_`;
-      copyToClipboard(text, 'Rekap Siswa Tidak Hadir (Multi-Kelas) berhasil disalin untuk WA!');
+      copyToClipboard(text, 'Rekap Siswa Tidak Hadir berhasil disalin untuk WA!');
     }
+
     function calculateClassSummary() {
       const kelasMap = {};
       rawStudents.forEach(s => {
