@@ -247,39 +247,47 @@
           </small>
         </div>
 
-        <!-- MENU SALIN REKAP KETIDAKHADIRAN KE WA (MULTI-KELAS SUPPORT) -->
+        <!-- MENU SALIN REKAP KETIDAKHADIRAN KE WA (MULTI-KELAS CHECKBOX) -->
         <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
           <h6 class="fw-bold mb-2 text-dark"><i class="fa-brands fa-whatsapp text-success me-1"></i> Salin Rekap Tidak Hadir (WA)</h6>
-          <p class="small text-muted mb-2">Pilih kelas (atau kosongkan untuk gabungkan semua kelas) lalu salin:</p>
+          <p class="small text-muted mb-2">Pilih kegiatan, gender, dan centang beberapa kelas yang ingin direkap:</p>
           
-          <div class="row g-2 mb-2">
-            <div class="col-12">
-              <select id="waFilterKegiatan" class="form-select form-select-sm">
-                <option value="Sholat Subuh">Sholat Subuh</option>
-                <option value="Sholat Dzuhur">Sholat Dzuhur</option>
-                <option value="Sholat Ashar">Sholat Ashar</option>
-                <option value="Sholat Maghrib">Sholat Maghrib</option>
-                <option value="Sholat Isya">Sholat Isya</option>
-                <option value="Apel Pagi / Senam">Apel Pagi / Senam</option>
-                <option value="Makan Bersama">Makan Bersama</option>
-                <option value="Belajar Malam / Jam Studi">Belajar Malam / Jam Studi</option>
-                <option value="Kebersihan Asrama">Kebersihan Asrama</option>
-                <option value="Apel Malam & Pengecekan Kamar">Apel Malam & Pengecekan Kamar</option>
-              </select>
+          <div class="mb-2">
+            <label class="form-label small fw-bold mb-1">Pilih Kegiatan</label>
+            <select id="waFilterKegiatan" class="form-select form-select-sm">
+              <option value="Sholat Subuh">Sholat Subuh</option>
+              <option value="Sholat Dzuhur">Sholat Dzuhur</option>
+              <option value="Sholat Ashar">Sholat Ashar</option>
+              <option value="Sholat Maghrib">Sholat Maghrib</option>
+              <option value="Sholat Isya">Sholat Isya</option>
+              <option value="Apel Pagi / Senam">Apel Pagi / Senam</option>
+              <option value="Makan Bersama">Makan Bersama</option>
+              <option value="Belajar Malam / Jam Studi">Belajar Malam / Jam Studi</option>
+              <option value="Kebersihan Asrama">Kebersihan Asrama</option>
+              <option value="Apel Malam & Pengecekan Kamar">Apel Malam & Pengecekan Kamar</option>
+            </select>
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label small fw-bold mb-1">Pilih Kelas (Bisa Pilih Beberapa)</label>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size:11px;" onclick="toggleAllWaKelas(true)">Pilih Semua</button>
+              <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size:11px;" onclick="toggleAllWaKelas(false)">Batalkan Semua</button>
             </div>
-            <div class="col-6">
-              <select id="waFilterKelas" class="form-select form-select-sm">
-                <option value="">Semua Kelas (Gabungan)</option>
-              </select>
-            </div>
-            <div class="col-6">
-              <select id="waFilterJk" class="form-select form-select-sm">
-                <option value="">Semua Gender</option>
-                <option value="Laki-laki">Laki-laki</option>
-                <option value="Perempuan">Perempuan</option>
-              </select>
+            <div id="waKelasCheckboxContainer" class="border rounded-3 p-2 bg-light d-flex flex-wrap gap-2" style="max-height: 120px; overflow-y: auto;">
+              <!-- Checkbox kelas akan dimuat otomatis di sini -->
             </div>
           </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold mb-1">Filter Gender</label>
+            <select id="waFilterJk" class="form-select form-select-sm">
+              <option value="">Semua Gender</option>
+              <option value="Laki-laki">Laki-laki</option>
+              <option value="Perempuan">Perempuan</option>
+            </select>
+          </div>
+
           <button class="btn btn-whatsapp w-100 py-2 btn-sm" onclick="copyWhatsAppKehadiranTidakHadir()">
             <i class="fa-solid fa-copy me-1"></i> Salin Rekap Tidak Hadir ke WhatsApp
           </button>
@@ -437,25 +445,37 @@
       const curVal = select.value;
       const hadirSelect = document.getElementById('hadirFilterKelas');
       const curHadirVal = hadirSelect.value;
-      const waSelect = document.getElementById('waFilterKelas');
-      const curWaVal = waSelect.value;
 
       const kelasSet = new Set(rawStudents.map(s => s.kelas).filter(Boolean));
       const sortedKelas = Array.from(kelasSet).sort();
 
       select.innerHTML = '<option value="">Semua Kelas</option>';
       hadirSelect.innerHTML = '<option value="">Pilih Kelas...</option>';
-      waSelect.innerHTML = '<option value="">Semua Kelas (Gabungan)</option>';
 
       sortedKelas.forEach(k => {
         select.innerHTML += `<option value="${k}">Kelas ${k}</option>`;
         hadirSelect.innerHTML += `<option value="${k}">Kelas ${k}</option>`;
-        waSelect.innerHTML += `<option value="${k}">Kelas ${k}</option>`;
       });
 
       if (curVal) select.value = curVal;
       if (curHadirVal) hadirSelect.value = curHadirVal;
-      if (curWaVal) waSelect.value = curWaVal;
+
+      // Render Checkbox Kelas untuk Menu WhatsApp
+      const waContainer = document.getElementById('waKelasCheckboxContainer');
+      let waCheckboxHtml = '';
+      sortedKelas.forEach(k => {
+        waCheckboxHtml += `
+          <div class="form-check form-check-inline m-1">
+            <input class="form-check-input wa-kelas-checkbox" type="checkbox" value="${k}" id="wa-kelas-${k}" checked>
+            <label class="form-check-label small fw-bold" for="wa-kelas-${k}">Kelas ${k}</label>
+          </div>
+        `;
+      });
+      waContainer.innerHTML = waCheckboxHtml;
+    }
+
+    function toggleAllWaKelas(status) {
+      document.querySelectorAll('.wa-kelas-checkbox').forEach(cb => { cb.checked = status; });
     }
 
     function updateStats() {
@@ -543,7 +563,10 @@
       const container = document.getElementById('checklistContainer');
 
       document.getElementById('waFilterKegiatan').value = kegiatanVal;
-      if (kelasVal) document.getElementById('waFilterKelas').value = kelasVal;
+      if (kelasVal) {
+        const cb = document.getElementById(`wa-kelas-${kelasVal}`);
+        if (cb) cb.checked = true;
+      }
       document.getElementById('waFilterJk').value = jkVal;
 
       if (!kelasVal) {
@@ -694,22 +717,34 @@
       });
     }
 
-    // SALIN REKAP KETIDAKHADIRAN KE WA (MENDUKUNG SATU KELAS ATAU SEMUA KELAS SEKALIGUS)
+    // SALIN REKAP KETIDAKHADIRAN KE WA (BERDASARKAN KELAS YANG DICENTANG)
     function copyWhatsAppKehadiranTidakHadir() {
       const kegiatanFilter = document.getElementById('waFilterKegiatan').value;
-      const kelasFilter = document.getElementById('waFilterKelas').value; // Kosong berarti Semua Kelas
       const jkFilter = document.getElementById('waFilterJk').value;
+      
+      // Ambil daftar kelas yang dicentang
+      const selectedKelas = [];
+      document.querySelectorAll('.wa-kelas-checkbox:checked').forEach(cb => {
+        selectedKelas.push(cb.value);
+      });
+
+      if (selectedKelas.length === 0) {
+        alert('Silakan centang minimal satu kelas yang ingin direkap!');
+        return;
+      }
+
       const tglStr = new Date().toLocaleDateString('id-ID', { dateStyle: 'full' });
       const waktuStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 
+      // Saring siswa yang kelasnya ada di dalam pilihan centang dan sesuai gender
       const targetStudents = rawStudents.filter(s => {
-        const matchKelas = !kelasFilter || s.kelas === kelasFilter;
+        const matchKelas = selectedKelas.includes(s.kelas);
         const matchJk = !jkFilter || s.jk.toLowerCase() === jkFilter.toLowerCase();
         return matchKelas && matchJk;
       });
 
       if (targetStudents.length === 0) {
-        alert('Tidak ada data siswa pada filter kelas/gender tersebut.');
+        alert('Tidak ada data siswa pada pilihan kelas dan gender tersebut.');
         return;
       }
 
@@ -737,7 +772,7 @@
       let text = `📋 *REKAP KETIDAKHADIRAN ASRAMA SRT 2* 📋\n`;
       text += `📅 Tanggal: ${tglStr} | Pukul: ${waktuStr}\n`;
       text += `📌 Kegiatan: *${kegiatanFilter}*\n`;
-      text += `🏫 Kelas: *${kelasFilter ? 'Kelas ' + kelasFilter : 'Semua Kelas (Gabungan)'}*\n`;
+      text += `🏫 Kelas: *${selectedKelas.join(', ')}*\n`;
       if (jkFilter) text += `👤 Gender: ${jkFilter}\n`;
       text += `\n`;
       text += `📊 *Statistik Kehadiran:*\n`;
@@ -756,7 +791,7 @@
       }
 
       text += `_Laporan Jurnal Asrama SRT 2 Kota Surabaya_`;
-      copyToClipboard(text, 'Rekap Siswa Tidak Hadir berhasil disalin untuk WA!');
+      copyToClipboard(text, 'Rekap Siswa Tidak Hadir (Multi-Kelas) berhasil disalin untuk WA!');
     }
 
     function calculateClassSummary() {
