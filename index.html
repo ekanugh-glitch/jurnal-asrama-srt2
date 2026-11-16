@@ -86,7 +86,7 @@
   <!-- HEADER -->
   <div class="header-banner no-print text-center mb-3">
     <h5 class="fw-bold mb-1"><i class="fa-solid fa-hotel me-2"></i>MANAJEMEN ASRAMA</h5>
-    <small class="opacity-75">SRT 2 KOTA SURABAYA</small>
+    <small class="opacity-75">SRT 2 Kota Surabaya</small>
   </div>
 
   <div class="container no-print">
@@ -195,14 +195,14 @@
         <div id="mobileClassSummaryContainer"></div>
       </div>
 
-      <!-- TAB 3: CHECKLIST KEHADIRAN KEGIATAN -->
+      <!-- TAB 3: CHECKLIST KEHADIRAN KEGIATAN (AUTO-SAVE) -->
       <div class="tab-pane fade" id="tab-kehadiran" role="tabpanel">
         <div class="card border-0 shadow-sm rounded-4 p-3 mb-3 bg-white">
-          <h6 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-list-check me-2"></i>Form Checklist Kehadiran</h6>
+          <h6 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-list-check me-2"></i>Checklist Kehadiran (Simpan Otomatis)</h6>
           
           <div class="mb-3">
             <label class="form-label small fw-bold">Pilih Kegiatan</label>
-            <select id="kegiatanSelect" class="form-select">
+            <select id="kegiatanSelect" class="form-select" onchange="renderChecklistKehadiran()">
               <optgroup label="Sholat 5 Waktu">
                 <option value="Sholat Subuh">Sholat Subuh</option>
                 <option value="Sholat Dzuhur">Sholat Dzuhur</option>
@@ -239,19 +239,18 @@
             </div>
           </div>
 
-          <div id="checklistContainer" class="mb-3 border rounded-3 p-2 bg-light" style="max-height: 400px; overflow-y: auto;">
+          <div id="checklistContainer" class="mb-2 border rounded-3 p-2 bg-light" style="max-height: 450px; overflow-y: auto;">
             <p class="text-center text-muted small my-3">Silakan pilih Kelas terlebih dahulu untuk menampilkan daftar siswa.</p>
           </div>
-
-          <button class="btn btn-success w-100 fw-bold py-2 rounded-3 shadow-sm" id="btnSimpanKehadiran" onclick="submitKehadiran()">
-            <i class="fa-solid fa-floppy-disk me-1"></i> Simpan Absensi Kehadiran
-          </button>
+          <small class="text-muted fst-italic d-block text-center" style="font-size: 11px;">
+            <i class="fa-solid fa-cloud-arrow-up text-success me-1"></i>Setiap perubahan status atau keterangan langsung tersimpan otomatis ke Google Sheets.
+          </small>
         </div>
 
         <!-- MENU SALIN REKAP KETIDAKHADIRAN KE WA -->
         <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
           <h6 class="fw-bold mb-2 text-dark"><i class="fa-brands fa-whatsapp text-success me-1"></i> Salin Rekap Tidak Hadir (WA)</h6>
-          <p class="small text-muted mb-2">Salin daftar siswa yang tidak hadir dengan info lengkap jumlah total & kehadiran:</p>
+          <p class="small text-muted mb-2">Salin daftar siswa yang tidak hadir dengan info statistik lengkap:</p>
           
           <div class="row g-2 mb-2">
             <div class="col-12">
@@ -302,7 +301,7 @@
   <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
     <div id="copyToast" class="toast align-items-center text-white bg-success border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
       <div class="d-flex">
-        <div class="toast-body fw-bold" id="toastMessage">Berhasil disimpan!</div>
+        <div class="toast-body fw-bold" id="toastMessage">Berhasil disalin!</div>
         <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
       </div>
     </div>
@@ -434,25 +433,28 @@
     }
 
     function populateKelasDropdown() {
+      const select = document.getElementById('filterKelas');
+      const curVal = select.value;
+      const hadirSelect = document.getElementById('hadirFilterKelas');
+      const curHadirVal = hadirSelect.value;
+      const waSelect = document.getElementById('waFilterKelas');
+      const curWaVal = waSelect.value;
+
       const kelasSet = new Set(rawStudents.map(s => s.kelas).filter(Boolean));
       const sortedKelas = Array.from(kelasSet).sort();
 
-      const select = document.getElementById('filterKelas');
-      const curVal = select.value;
       select.innerHTML = '<option value="">Semua Kelas</option>';
-      sortedKelas.forEach(k => { select.innerHTML += `<option value="${k}">Kelas ${k}</option>`; });
-      if (curVal) select.value = curVal;
-
-      const hadirSelect = document.getElementById('hadirFilterKelas');
-      const curHadirVal = hadirSelect.value;
       hadirSelect.innerHTML = '<option value="">Pilih Kelas...</option>';
-      sortedKelas.forEach(k => { hadirSelect.innerHTML += `<option value="${k}">Kelas ${k}</option>`; });
-      if (curHadirVal) hadirSelect.value = curHadirVal;
-
-      const waSelect = document.getElementById('waFilterKelas');
-      const curWaVal = waSelect.value;
       waSelect.innerHTML = '<option value="">Semua Kelas</option>';
-      sortedKelas.forEach(k => { waSelect.innerHTML += `<option value="${k}">Kelas ${k}</option>`; });
+
+      sortedKelas.forEach(k => {
+        select.innerHTML += `<option value="${k}">Kelas ${k}</option>`;
+        hadirSelect.innerHTML += `<option value="${k}">Kelas ${k}</option>`;
+        waSelect.innerHTML += `<option value="${k}">Kelas ${k}</option>`;
+      });
+
+      if (curVal) select.value = curVal;
+      if (curHadirVal) hadirSelect.value = curHadirVal;
       if (curWaVal) waSelect.value = curWaVal;
     }
 
@@ -537,7 +539,12 @@
     function renderChecklistKehadiran() {
       const kelasVal = document.getElementById('hadirFilterKelas').value;
       const jkVal = document.getElementById('hadirFilterJk').value;
+      const kegiatanVal = document.getElementById('kegiatanSelect').value;
       const container = document.getElementById('checklistContainer');
+
+      document.getElementById('waFilterKegiatan').value = kegiatanVal;
+      if (kelasVal) document.getElementById('waFilterKelas').value = kelasVal;
+      document.getElementById('waFilterJk').value = jkVal;
 
       if (!kelasVal) {
         container.innerHTML = `<p class="text-center text-muted small my-3">Silakan pilih Kelas terlebih dahulu.</p>`;
@@ -557,24 +564,23 @@
 
       let html = `<div class="mb-2 d-flex justify-content-between align-items-center">
                     <small class="fw-bold text-muted">Jumlah Siswa: ${filtered.length}</small>
-                    <div>
-                      <button type="button" class="btn btn-xs btn-outline-success py-0 px-2" style="font-size:11px;" onclick="toggleAllHadir(true)">Hadir Semua</button>
-                      <button type="button" class="btn btn-xs btn-outline-danger py-0 px-2" style="font-size:11px;" onclick="toggleAllHadir(false)">Reset</button>
-                    </div>
+                    <span class="badge bg-primary-subtle text-primary" style="font-size:11px;">${kegiatanVal}</span>
                   </div>`;
 
       filtered.forEach((s, idx) => {
-        const isDiAsrama = s.status.toLowerCase() === 'ada';
-        const defaultKet = !isDiAsrama ? s.status : 'Hadir';
+        const existingLog = recentKehadiranLogs.find(log => String(log.id) === String(s.id) && log.kegiatan === kegiatanVal);
+        const isDiAsrama = existingLog ? (existingLog.status === 'Hadir') : (s.status.toLowerCase() === 'ada');
+        const defaultKet = existingLog ? existingLog.keterangan : (!isDiAsrama ? s.status : 'Hadir');
         const selectColor = isDiAsrama ? 'text-success fw-bold' : 'text-danger fw-bold';
 
         html += `
-          <div class="card p-2 mb-2 shadow-sm border-0 checklist-item-card" data-id="${s.id}" data-nama="${s.nama}" data-kelas="${s.kelas}" data-jk="${s.jk}">
+          <div class="card p-2 mb-2 shadow-sm border-0 checklist-item-card" id="card-hadir-${s.id}">
             <div class="d-flex justify-content-between align-items-center mb-1">
               <div>
                 <span class="badge bg-secondary me-1">${idx + 1}</span>
                 <strong class="small">${s.nama}</strong>
                 <span class="text-muted" style="font-size: 11px;">(${s.jk})</span>
+                <span id="save-status-${s.id}" class="ms-1 small" style="font-size: 11px;">${existingLog ? '<span class="text-success"><i class="fa-solid fa-check-circle"></i> Tersimpan</span>' : ''}</span>
               </div>
               <div class="form-check form-switch">
                 <input class="form-check-input siswa-hadir-checkbox" type="checkbox" role="switch" id="check-${s.id}" ${isDiAsrama ? 'checked' : ''} onchange="handleChecklistChange('${s.id}')">
@@ -583,16 +589,16 @@
             </div>
             <div class="input-group input-group-sm">
               <span class="input-group-text bg-white small">Keterangan</span>
-              <select class="form-select form-select-sm siswa-keterangan-select ${selectColor}" id="ket-${s.id}">
+              <select class="form-select form-select-sm siswa-keterangan-select ${selectColor}" id="ket-${s.id}" onchange="handleKeteranganChange('${s.id}')">
                 <option value="Hadir" ${defaultKet === 'Hadir' ? 'selected' : ''}>Hadir</option>
                 <option value="Alfa" ${defaultKet === 'Alfa' ? 'selected' : ''}>Alfa</option>
-                <option value="Izin" ${defaultKet === 'Izin' || s.status.toLowerCase() === 'izin pulang' ? 'selected' : ''}>Izin</option>
-                <option value="Sakit" ${defaultKet === 'Sakit' || s.ketSakit ? 'selected' : ''}>Sakit</option>
-                <option value="Latihan Silat">Latihan Silat</option>
-                <option value="Latihan Karate">Latihan Karate</option>
-                <option value="Pramuka">Pramuka</option>
-                <option value="Mengikuti Kegiatan Ekstrakurikuler">Mengikuti Kegiatan Ekstrakurikuler</option>
-                <option value="Tidak Ada di Asrama" ${isDiAsrama ? '' : 'selected'}>Tidak Ada di Asrama (${s.status})</option>
+                <option value="Izin" ${defaultKet === 'Izin' || (!existingLog && s.status.toLowerCase() === 'izin pulang') ? 'selected' : ''}>Izin</option>
+                <option value="Sakit" ${defaultKet === 'Sakit' || (!existingLog && s.ketSakit) ? 'selected' : ''}>Sakit</option>
+                <option value="Latihan Silat" ${defaultKet === 'Latihan Silat' ? 'selected' : ''}>Latihan Silat</option>
+                <option value="Latihan Karate" ${defaultKet === 'Latihan Karate' ? 'selected' : ''}>Latihan Karate</option>
+                <option value="Pramuka" ${defaultKet === 'Pramuka' ? 'selected' : ''}>Pramuka</option>
+                <option value="Mengikuti Kegiatan Ekstrakurikuler" ${defaultKet === 'Mengikuti Kegiatan Ekstrakurikuler' ? 'selected' : ''}>Mengikuti Kegiatan Ekstrakurikuler</option>
+                <option value="Tidak Ada di Asrama" ${(!existingLog && !isDiAsrama) || defaultKet.includes('Tidak Ada') ? 'selected' : ''}>Tidak Ada di Asrama (${s.status})</option>
               </select>
             </div>
           </div>
@@ -613,54 +619,56 @@
         select.className = 'form-select form-select-sm text-success fw-bold';
       } else {
         label.innerText = 'Tidak Hadir';
-        select.value = 'Alfa';
+        if (select.value === 'Hadir') select.value = 'Alfa';
         select.className = 'form-select form-select-sm text-danger fw-bold';
       }
+
+      saveSingleKehadiran(id);
     }
 
-    function toggleAllHadir(status) {
-      document.querySelectorAll('.siswa-hadir-checkbox').forEach(cb => {
-        cb.checked = status;
-        handleChecklistChange(cb.id.replace('check-', ''));
-      });
-    }
+    function handleKeteranganChange(id) {
+      const checkbox = document.getElementById(`check-${id}`);
+      const label = document.getElementById(`label-check-${id}`);
+      const select = document.getElementById(`ket-${id}`);
 
-    function submitKehadiran() {
-      const kegiatan = document.getElementById('kegiatanSelect').value;
-      const cards = document.querySelectorAll('.checklist-item-card');
-      
-      if (cards.length === 0) {
-        alert('Tidak ada data siswa yang dipilih.');
-        return;
+      if (select.value === 'Hadir') {
+        checkbox.checked = true;
+        label.innerText = 'Hadir';
+        select.className = 'form-select form-select-sm text-success fw-bold';
+      } else {
+        checkbox.checked = false;
+        label.innerText = 'Tidak Hadir';
+        select.className = 'form-select form-select-sm text-danger fw-bold';
       }
 
-      const items = [];
-      cards.forEach(card => {
-        const id = card.getAttribute('data-id');
-        const nama = card.getAttribute('data-nama');
-        const kelas = card.getAttribute('data-kelas');
-        const jk = card.getAttribute('data-jk');
-        const isHadir = document.getElementById(`check-${id}`).checked;
-        const ket = document.getElementById(`ket-${id}`).value;
+      saveSingleKehadiran(id);
+    }
 
-        items.push({
-          id: id,
-          nama: nama,
-          kelas: kelas,
-          jk: jk,
-          status: isHadir ? 'Hadir' : 'Tidak Hadir',
-          keterangan: isHadir ? 'Hadir' : ket
-        });
-      });
+    function saveSingleKehadiran(id) {
+      const student = rawStudents.find(s => String(s.id) === String(id));
+      if (!student) return;
 
-      const btn = document.getElementById('btnSimpanKehadiran');
-      btn.disabled = true;
-      btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Menyimpan...`;
+      const kegiatan = document.getElementById('kegiatanSelect').value;
+      const isHadir = document.getElementById(`check-${id}`).checked;
+      const ket = document.getElementById(`ket-${id}`).value;
+      const statusBadge = document.getElementById(`save-status-${id}`);
+
+      const itemData = {
+        id: student.id,
+        nama: student.nama,
+        kelas: student.kelas,
+        jk: student.jk,
+        kegiatan: kegiatan,
+        status: isHadir ? 'Hadir' : 'Tidak Hadir',
+        keterangan: isHadir ? 'Hadir' : ket
+      };
+
+      statusBadge.innerHTML = `<span class="text-warning"><i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...</span>`;
 
       const payload = {
         action: 'saveKehadiran',
         kegiatan: kegiatan,
-        items: items
+        item: itemData
       };
 
       fetch(WEB_APP_URL, {
@@ -669,27 +677,23 @@
       })
       .then(res => res.json())
       .then(res => {
-        btn.disabled = false;
-        btn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i> Simpan Absensi Kehadiran`;
-        
-        if (res.status === 'sudah_ada') {
-          alert('⚠️ Absensi untuk kegiatan dan tanggal ini sudah ada. Jika ada perubahan status siswa, sistem akan memperbaruinya otomatis.');
-        } else if (res.success) {
-          recentKehadiranLogs = items;
-          document.getElementById('toastMessage').innerText = '✅ Kehadiran berhasil disimpan/diperbarui!';
-          toastObj.show();
+        if (res.success) {
+          const existingIdx = recentKehadiranLogs.findIndex(log => String(log.id) === String(id) && log.kegiatan === kegiatan);
+          if (existingIdx !== -1) {
+            recentKehadiranLogs[existingIdx] = itemData;
+          } else {
+            recentKehadiranLogs.push(itemData);
+          }
+          statusBadge.innerHTML = `<span class="text-success fw-bold"><i class="fa-solid fa-check-circle"></i> Tersimpan</span>`;
         } else {
-          alert('Gagal: ' + res.message);
+          statusBadge.innerHTML = `<span class="text-danger fw-bold"><i class="fa-solid fa-triangle-exclamation"></i> Gagal</span>`;
         }
       })
       .catch(err => {
-        btn.disabled = false;
-        btn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i> Simpan Absensi Kehadiran`;
-        alert('Kesalahan koneksi: ' + err);
+        statusBadge.innerHTML = `<span class="text-danger fw-bold"><i class="fa-solid fa-wifi"></i> Error</span>`;
       });
     }
 
-    // SALIN REKAP KETIDAKHADIRAN KE WA (DENGAN INFO TOTAL, HADIR, TIDAK HADIR)
     function copyWhatsAppKehadiranTidakHadir() {
       const kegiatanFilter = document.getElementById('waFilterKegiatan').value;
       const kelasFilter = document.getElementById('waFilterKelas').value;
@@ -697,25 +701,37 @@
       const tglStr = new Date().toLocaleDateString('id-ID', { dateStyle: 'full' });
       const waktuStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 
-      if (recentKehadiranLogs.length === 0) {
-        alert('Belum ada data kehadiran yang disimpan pada sesi ini. Silakan simpan absensi terlebih dahulu.');
-        return;
-      }
-
-      const filtered = recentKehadiranLogs.filter(item => {
-        const matchKelas = !kelasFilter || item.kelas === kelasFilter;
-        const matchJk = !jkFilter || item.jk.toLowerCase() === jkFilter.toLowerCase();
+      const targetStudents = rawStudents.filter(s => {
+        const matchKelas = !kelasFilter || s.kelas === kelasFilter;
+        const matchJk = !jkFilter || s.jk.toLowerCase() === jkFilter.toLowerCase();
         return matchKelas && matchJk;
       });
 
-      if (filtered.length === 0) {
-        alert('Tidak ada data kehadiran yang cocok dengan filter tersebut.');
+      if (targetStudents.length === 0) {
+        alert('Tidak ada data siswa pada filter kelas/gender tersebut.');
         return;
       }
 
-      const totalSiswa = filtered.length;
-      const hadirList = filtered.filter(i => i.status === 'Hadir');
-      const tidakHadirList = filtered.filter(i => i.status !== 'Hadir');
+      const evaluatedList = targetStudents.map(s => {
+        const log = recentKehadiranLogs.find(l => String(l.id) === String(s.id) && l.kegiatan === kegiatanFilter);
+        if (log) {
+          return log;
+        } else {
+          const isAda = s.status.toLowerCase() === 'ada';
+          return {
+            id: s.id,
+            nama: s.nama,
+            kelas: s.kelas,
+            jk: s.jk,
+            status: isAda ? 'Hadir' : 'Tidak Hadir',
+            keterangan: isAda ? 'Hadir' : `Tidak Ada di Asrama (${s.status})`
+          };
+        }
+      });
+
+      const totalSiswa = evaluatedList.length;
+      const hadirList = evaluatedList.filter(i => i.status === 'Hadir');
+      const tidakHadirList = evaluatedList.filter(i => i.status !== 'Hadir');
 
       let text = `📋 *REKAP KETIDAKHADIRAN ASRAMA SRT 2* 📋\n`;
       text += `📅 Tanggal: ${tglStr} | Pukul: ${waktuStr}\n`;
