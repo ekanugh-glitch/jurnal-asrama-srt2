@@ -694,13 +694,15 @@
       });
     }
 
+    // SALIN REKAP KETIDAKHADIRAN KE WA (MENDUKUNG SATU KELAS ATAU BEBERAPA/SEMUA KELAS SEKALIGUS)
     function copyWhatsAppKehadiranTidakHadir() {
       const kegiatanFilter = document.getElementById('waFilterKegiatan').value;
-      const kelasFilter = document.getElementById('waFilterKelas').value;
+      const kelasFilter = document.getElementById('waFilterKelas').value; // Jika kosong/"" berarti SEMUA KELAS
       const jkFilter = document.getElementById('waFilterJk').value;
       const tglStr = new Date().toLocaleDateString('id-ID', { dateStyle: 'full' });
       const waktuStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 
+      // Saring daftar siswa berdasarkan kelas (bisa satu kelas atau semua kelas jika kosong) dan gender
       const targetStudents = rawStudents.filter(s => {
         const matchKelas = !kelasFilter || s.kelas === kelasFilter;
         const matchJk = !jkFilter || s.jk.toLowerCase() === jkFilter.toLowerCase();
@@ -712,6 +714,7 @@
         return;
       }
 
+      // Evaluasi status kehadiran siswa berdasarkan log lokal atau status asrama
       const evaluatedList = targetStudents.map(s => {
         const log = recentKehadiranLogs.find(l => String(l.id) === String(s.id) && l.kegiatan === kegiatanFilter);
         if (log) {
@@ -736,7 +739,7 @@
       let text = `📋 *REKAP KETIDAKHADIRAN ASRAMA SRT 2* 📋\n`;
       text += `📅 Tanggal: ${tglStr} | Pukul: ${waktuStr}\n`;
       text += `📌 Kegiatan: *${kegiatanFilter}*\n`;
-      if (kelasFilter) text += `🏫 Kelas: ${kelasFilter}\n`;
+      text += `🏫 Kelas: *${kelasFilter ? 'Kelas ' + kelasFilter : 'Semua Kelas (Gabungan)'}*\n`;
       if (jkFilter) text += `👤 Gender: ${jkFilter}\n`;
       text += `\n`;
       text += `📊 *Statistik Kehadiran:*\n`;
@@ -749,15 +752,15 @@
       } else {
         text += `❌ *Daftar Siswa Tidak Hadir:*\n\n`;
         tidakHadirList.forEach((i, idx) => {
+          // Disertai info Kelas agar jelas jika menyalin beberapa kelas sekaligus
           text += `${idx + 1}. *${i.nama}* (Kelas ${i.kelas})\n`;
-          text += `   • Keterangan: _${i.keterangan}_\n\n`;
+          text += `   • Keterangan: _${i.keterangan_\n\n`;
         });
       }
 
       text += `_Laporan Jurnal Asrama SRT 2 Kota Surabaya_`;
-      copyToClipboard(text, 'Rekap Siswa Tidak Hadir berhasil disalin untuk WA!');
+      copyToClipboard(text, 'Rekap Siswa Tidak Hadir (Multi-Kelas) berhasil disalin untuk WA!');
     }
-
     function calculateClassSummary() {
       const kelasMap = {};
       rawStudents.forEach(s => {
